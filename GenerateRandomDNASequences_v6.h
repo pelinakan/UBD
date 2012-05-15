@@ -26,12 +26,12 @@ public:
 	bool checkforruns(string);
 	string RevComp(string);
 	void initialisevars();
-	int CalculateEditDistance(string,string);
+	static int CalculateEditDistance(string,string);
 	bool SecondaryStructure(string,int,string);
 	bool hybridise(string,int,int,string);
-	string AppendAdaptors(string&);
+	static string AppendAdaptors(string&);
 	void DetermineFilteringThresholds(void);
-	void GenerateRandomSequence_SetGC(vector<bool>&,vector<string>&);
+	void GenerateRandomSequence_SetGC();
 };
 void GenerateSequences::initialisevars(void){
 	
@@ -392,7 +392,96 @@ LenDiffThreshold=SeqLen-lwzscore;
 
 }
 
-void GenerateSequences::GenerateRandomSequence_SetGC(vector<bool> &pass, vector<string> &seqs){
+typedef struct {
+	int id,GCcontent;
+	GenerateSequences* father;
+}params;
+
+void* generateRandomChecked(void* args)
+{
+	string seq,seq_rc,probe;
+	int lzwscore,ed;
+	bool passedrepeatcheck,final;
+	params *p = (params*)args;
+	int this_thread = p->id;
+	int GCcontent = p->GCcontent;
+	HybridSSMin* hybMin=new HybridSSMin();
+	GenerateSequences* mother = p->father;
+	vector<string> buffer;
+
+	while (true){
+	seq=mother->randomseq_setGC(GCcontent); //Generate Random Seq
+	seq_rc=mother->RevComp(seq);
+	ed= GenerateSequences::CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
+	if(ed>=EditDistanceThreshold_Self){
+		passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
+		lzwscore=lzw(seq); // Check for complexity
+//		cout << this_thread << endl;
+		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
+			probe= GenerateSequences::AppendAdaptors(seq);
+			double dG, dS,dH,Tm;
+			hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
+			dS=(dH-dG)/(273.15+ SelfHybT);
+			Tm=(dH/dS)-273.15;
+			if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
+				//Acquire lock
+				if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
+					if (buffer.size() > 1000) {//Don't buffer more than 1000 sequences
+						pthread_mutex_lock(&poolMutex);
+						//Drop entire buffer to pool
+						for (int i=0; i<buffer.size();++i) {
+							pool.push_back(buffer[i]);
+						}
+						pthread_mutex_unlock(&poolMutex);
+						buffer.clear();
+					} else 
+						buffer.push_back(seq);
+				} else {
+					//Do stuff
+					pool.push_back(seq);
+					pthread_mutex_unlock(&poolMutex);
+				}
+			}
+		}
+	}
+
+	}
+	delete hybMin;
+	return NULL;
+}
+
+void GenerateSequences::GenerateRandomSequence_SetGC(){
+	
+	string Tstr,passedseq;
+
+	int gcmin,gcmax,GCcontent;
+	gcmin=MinGC*SeqLen;	gcmax=MaxGC*SeqLen;
+
+	std::stringstream temperature;
+	temperature << SelfHybT;
+	
+	int x = (int) ((gcmax-gcmin)*rand()/(RAND_MAX+1.0)); //SET THE GC CONTENT
+	GCcontent=gcmin+x; //SET THE GC CONTENT
+
+	//Start threads!
+	pthread_attr_t attr;
+
+	/* Initialize and set thread detached attribute */
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_t someThread;
+    //Create the world!
+	for (int i=0;i<N_THREADS;++i) {
+		params* p = new params();
+		p->id = i;
+		p->GCcontent = GCcontent;
+		p->father = new GenerateSequences();
+		int rc = pthread_create(&someThread,&attr,&generateRandomChecked,p);
+	}
+
+}
+
+/*void GenerateSequences::GenerateRandomSequence_SetGC(vector<bool> &pass, vector<string> &seqs){
 
 
 	int i, gcmin,gcmax,GCcontent;
@@ -443,8 +532,8 @@ void GenerateSequences::GenerateRandomSequence_SetGC(vector<bool> &pass, vector<
 			if(!pass[this_thread]) break;
 		}
 	}
-*/
+
 
 	
 
-}
+}*/

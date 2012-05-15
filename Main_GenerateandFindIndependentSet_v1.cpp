@@ -31,6 +31,9 @@ const double Hyb_Temperature=50;
 const double R = 0.0019872; //For Tm calculations
 //**********************************************
 const int N_THREADS=7;
+#include <pthread.h>
+pthread_mutex_t poolMutex;
+std::vector<string> pool;
 //**D E P E N D E N C I E S*********************
 #include "LZW.h"
 #include "hybrid-ss-min.h"
@@ -59,22 +62,36 @@ int main(){
 	vector <string> randseqs;
 	string randseq_revcomp;
 	
-	vector <bool> passedfilter;
-//	HybridSSMin* ceva=new HybridSSMin();
-
 	Sequences.initialisevars();
 	Sequences.DetermineFilteringThresholds();
+	//Startup generating threads!
+	Sequences.GenerateRandomSequence_SetGC();
+	//Create local buffer.
+	vector<string> sequenceVector;
 	do{
-		passedfilter.resize(N_THREADS); //Initialise randseq filter vector
-		randseqs.resize(N_THREADS); // Initialise randseq vector
-		randseq_revcomp.clear(); //Initialise randseq_revcomp
-		Sequences.GenerateRandomSequence_SetGC(passedfilter,randseqs); // Generate N_THREADS x random sequences
-		for(i=0;i<N_THREADS;i++){
-			if(passedfilter[i])
-				NW.RetrieveUniqueNodes(randseqs[i]);
+		//Wait for pool!
+		pthread_mutex_lock(&poolMutex);
+		//Check for size of pool
+		if (pool.size() >= 10) {
+			for (int i=0;i<pool.size();++i) {
+				sequenceVector.push_back(pool[i]);
+			}
+			pool.clear();
 		}
-//		if(NW.CommonSet.size()%100==0)
-//			cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
+		pthread_mutex_unlock(&poolMutex);
+		if (sequenceVector.empty()) {
+			//Do something silly for some time
+			clock_t goal = 100 + clock();
+			while (goal > clock());
+			continue;
+		}
+
+		for(i=0;i<sequenceVector.size(), NW.CommonSet.size()<=DesiredNofBarcodes ;++i){
+			NW.RetrieveUniqueNodes(randseqs[i]);
+		}
+		if(NW.CommonSet.size()%100==0)
+			cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
+
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
 
 	FN.append(PutSeqFNS);
