@@ -9,7 +9,7 @@ public:
 	vector< vector <double> > Features;
 	int GenerateRandomNode(void);
 	void initialisevars(void);
-	static int CalculateEditDistance(string&, string&);
+	int CalculateEditDistance(string, string);
 	void RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
 	static string RevComp(string);
@@ -41,7 +41,7 @@ void Network::initialisevars(void){
 //	dd=(unsigned int*) malloc(NofPutBarcodes*sizeof(unsigned int));
 
 }
-int Network::CalculateEditDistance(string& s1, string& s2){
+int Network::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
 	string s2_revcom;
@@ -95,11 +95,11 @@ unsigned int editdist;
 
 addtoset=1;
 bool done=false;
-#pragma omp parallel for default(shared) firstprivate(EditDistanceThreshold)
+#pragma omp parallel for default(shared)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
    //#pragma omp critical
    if(!done){
-     editdist=Network::CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+     editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
        {
