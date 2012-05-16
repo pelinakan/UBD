@@ -415,7 +415,6 @@ void* generateRandomChecked(void* args)
 	if(ed>=EditDistanceThreshold_Self){
 		passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
 		lzwscore=lzw(seq); // Check for complexity
-//		cout << this_thread << endl;
 		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
 			probe= GenerateSequences::AppendAdaptors(seq);
 			double dG, dS,dH,Tm;
@@ -425,7 +424,7 @@ void* generateRandomChecked(void* args)
 			if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 				//Acquire lock
 			  	if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
-					if (buffer.size() > 1000) {//Don't buffer more than 1000 sequences
+					if (buffer.size() > 200) {//Don't buffer more than 100 sequences
 					  pthread_mutex_lock(&poolMutex);
 					  if (die)
 					    break;
@@ -436,13 +435,13 @@ void* generateRandomChecked(void* args)
 					  pthread_mutex_unlock(&poolMutex);
 					  buffer.clear();
 					} else 
-						buffer.push_back(seq);
+					  buffer.push_back(seq);
 				} else {
 				  if (die)
 				    break;
-					//Do stuff
-					pool.push_back(seq);
-					pthread_mutex_unlock(&poolMutex);
+				  //Do stuff
+				  pool.push_back(seq);
+				  pthread_mutex_unlock(&poolMutex);
 				}
 			}
 		}
@@ -473,7 +472,7 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_t someThread;
     //Create the world!
-	for (int i=0;i<N_THREADS;++i) {
+	for (int i=0;i<1;++i) {
 	  	params* p = new params();
 		p->id = i;
 		p->GCcontent = GCcontent;

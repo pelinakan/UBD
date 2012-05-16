@@ -9,10 +9,10 @@ public:
 	vector< vector <double> > Features;
 	int GenerateRandomNode(void);
 	void initialisevars(void);
-	int CalculateEditDistance(string, string);
+	static int CalculateEditDistance(string, string);
 	void RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
-	string RevComp(string);
+	static string RevComp(string);
 };
 
 Network::Network(){}
@@ -58,7 +58,7 @@ int Network::CalculateEditDistance(string s1, string s2){
 				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + (s1[x - 1] == s2[y - 1] ? 0 : 1) );
 	
 	if(d[len][len] > EditDistanceThreshold){
-		s2_revcom=RevComp(s2);
+	  s2_revcom=Network::RevComp(s2);
 		d[0][0] = 0;
 
 		for(x = 1; x <= len; ++x) d[x][0] = x;
@@ -91,17 +91,19 @@ unsigned int editdist;
 
 addtoset=1;
 bool done=false;
-#pragma omp parallel for default(shared)
-for(k=0;k<CommonSet.size();k++){ // Make sure if the last selected node is not connected to already present nodes in the common set
-	if(!done){
-		editdist=CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
-		if(editdist<=EditDistanceThreshold){
+#pragma omp parallel for default(shared) firstprivate(EditDistanceThreshold)
+ for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
+   //#pragma omp critical
+   if(!done){
+     editdist=Network::CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+     if(editdist<=EditDistanceThreshold){
 #pragma omp critical
-{			addtoset=0;
-			done=true;
-}
-		}
-	}
+       {
+	 addtoset=0;
+	 done=true;
+       }
+     }
+   }
 }
 
 if(addtoset)

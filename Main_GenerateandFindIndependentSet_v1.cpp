@@ -30,7 +30,7 @@ const double Hyb_Temperature=50;
 //***********C O N S T A N T S******************
 const double R = 0.0019872; //For Tm calculations
 //**********************************************
-const int N_THREADS=4;
+const int N_THREADS=7;
 #include <pthread.h>
 pthread_mutex_t poolMutex;
 std::vector<string> pool;
@@ -73,7 +73,7 @@ int main(){
 		//Wait for pool!
 		pthread_mutex_lock(&poolMutex);
 		//Check for size of pool
-		if (pool.size() >= 10) {
+		if (pool.size() >= 100) {
 			for (int i=0;i<pool.size();++i) {
 			  sequenceVector.push_back(pool[i]);
 			}
@@ -82,7 +82,7 @@ int main(){
 		pthread_mutex_unlock(&poolMutex);
 		if (sequenceVector.empty()) {
 		  	//Do something silly for some time
-			clock_t goal = 100 + clock();
+			clock_t goal = 10 + clock();
 			while (goal > clock());
 			continue;
 		}
@@ -93,14 +93,17 @@ int main(){
 		    break;
 		  ++i;
 		}
+		sequenceVector.clear();
+
 		if(NW.CommonSet.size()%100==0)
 			cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
 
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
-
+	
 	//Cleanup generating threads!
 	pthread_mutex_lock(&poolMutex);
 	die = true;
+	cout << pool.size() << endl;
 	pool.clear();
 	pthread_mutex_unlock(&poolMutex);
 
