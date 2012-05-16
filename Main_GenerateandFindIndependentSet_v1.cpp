@@ -61,7 +61,7 @@ int main(){
 	bool keepbarcode;
 	vector <string> randseqs;
 	string randseq_revcomp;
-	
+
 	Sequences.initialisevars();
 	Sequences.DetermineFilteringThresholds();
 	//Startup generating threads!
