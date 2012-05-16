@@ -15,7 +15,7 @@ using namespace std;
 
 //****U S E R S  S H O U L D  E N T E R   T H E S E   P A R A M E T E R S**************************//
 const int SeqLen=20; //LENGTH OF THE SEQUENCE IDENTIFIER (BARCODE)
-const unsigned long int DesiredNofBarcodes=100; //NUMBER OF BARCODES NEEDED
+const unsigned long int DesiredNofBarcodes=1000; //NUMBER OF BARCODES NEEDED
 string LeftAdaptor="ACACTCTTTCCCTACACGACGCTCTTCCGATCT"; //THE ADAPTOR SEQUENCE ADDED TO THE LEFT OF THE BARCODE (5')
 string RightAdaptor=""; //THE ADAPTOR SEQUENCE ADDED TO THE RIGHT OF THE BARCODE (3')
 const int homoplimit=4; //MAXIMUM NUMBER OF MONO, DI OR TRI-MERS ALLOWED WITHIN A BARCODE
@@ -30,7 +30,7 @@ const double Hyb_Temperature=50;
 //***********C O N S T A N T S******************
 const double R = 0.0019872; //For Tm calculations
 //**********************************************
-const int N_THREADS=7;
+const int N_THREADS=6;
 #include <pthread.h>
 pthread_mutex_t poolMutex;
 std::vector<string> pool;
@@ -62,7 +62,8 @@ int main(){
 	bool keepbarcode;
 	vector <string> randseqs;
 	string randseq_revcomp;
-
+	
+	omp_set_num_threads(N_THREADS);
 	pthread_mutex_init(&poolMutex,NULL);
 
 	Sequences.initialisevars();
@@ -71,7 +72,6 @@ int main(){
 	Sequences.GenerateRandomSequence_SetGC();
 	//Create local buffer.
 	vector<string> sequenceVector;
-	int miss = 0;
 	do{
 		//Wait for pool!
 		pthread_mutex_lock(&poolMutex);
@@ -90,10 +90,9 @@ int main(){
 		  continue;
 		}
 		i=0;
-		miss += 1;
-		while (i<sequenceVector.size()) {
+		while (i < sequenceVector.size()) {
 		  NW.RetrieveUniqueNodes(sequenceVector[i]);
-		  if (NW.CommonSet.size()>DesiredNofBarcodes)
+		  if (NW.CommonSet.size() > DesiredNofBarcodes)
 		    break;
 		  ++i;
 		}

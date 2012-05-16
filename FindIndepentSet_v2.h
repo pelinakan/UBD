@@ -88,18 +88,14 @@ int Network::GenerateRandomNode(void){
 void Network::RetrieveUniqueNodes(string putbarcode){
 
 long int k;
-int i;
 bool addtoset=1;
-unsigned int editdist;
-
-
-addtoset=1;
 bool done=false;
-#pragma omp parallel for default(shared)
+
+#pragma omp parallel for default(shared) schedule(dynamic,200)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
    //#pragma omp critical
    if(!done){
-     editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+     unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
        {
@@ -111,8 +107,8 @@ bool done=false;
 }
 
 if(addtoset)
-	CommonSet.push_back(putbarcode); //Add it to the set if it not connected to the previously added members
-	
+  CommonSet.push_back(putbarcode); //Add it to the set if it not connected to the previously added members
+ 
 if(CommonSet.size()%500==0)
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
 

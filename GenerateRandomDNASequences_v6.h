@@ -447,10 +447,10 @@ void* generateRandomChecked(void* args)
 				  pthread_mutex_unlock(&poolMutex);
 				}
 				//Is the pool completely full?
-				if (poolSize > 2000) {//Sleep around for some time...
+				if (poolSize > 5000) {//Sleep around for some time...
 				  do {
 				    pthread_yield();
-				    cout << "Yielding" << endl;
+				    usleep(1000);
 				  }while (pool.size() != 0);
 				}
 			}
