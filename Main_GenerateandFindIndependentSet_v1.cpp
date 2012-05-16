@@ -15,7 +15,7 @@ using namespace std;
 
 //****U S E R S  S H O U L D  E N T E R   T H E S E   P A R A M E T E R S**************************//
 const int SeqLen=20; //LENGTH OF THE SEQUENCE IDENTIFIER (BARCODE)
-const unsigned long int DesiredNofBarcodes=135000; //NUMBER OF BARCODES NEEDED
+const unsigned long int DesiredNofBarcodes=1000; //NUMBER OF BARCODES NEEDED
 string LeftAdaptor="ACACTCTTTCCCTACACGACGCTCTTCCGATCT"; //THE ADAPTOR SEQUENCE ADDED TO THE LEFT OF THE BARCODE (5')
 string RightAdaptor=""; //THE ADAPTOR SEQUENCE ADDED TO THE RIGHT OF THE BARCODE (3')
 const int homoplimit=4; //MAXIMUM NUMBER OF MONO, DI OR TRI-MERS ALLOWED WITHIN A BARCODE
@@ -23,7 +23,7 @@ const double MinGC=0.45; // MINIMUM GC PERCENTAGE OF THE BARCODE
 const double MaxGC=0.65; //MAXIMUM GC PERCENTAGE OF THE BARCODE
 int LenDiffThreshold; 
 const double SelfHybT=50.0; //SELF HYBRIDIZATION TM THRESHOLD
-double EditDistanceThreshold=5;
+double EditDistanceThreshold=4;
 double EditDistanceThreshold_Self=5;
 const double Hyb_Temperature=50;
 //**************************************************************************************************
@@ -34,6 +34,7 @@ const int N_THREADS=7;
 #include <pthread.h>
 pthread_mutex_t poolMutex;
 std::vector<string> pool;
+bool die = false;
 //**D E P E N D E N C I E S*********************
 #include "LZW.h"
 #include "hybrid-ss-min.h"
@@ -72,27 +73,39 @@ int main(){
 		//Wait for pool!
 		pthread_mutex_lock(&poolMutex);
 		//Check for size of pool
-		if (pool.size() >= 10) {
+		if (pool.size() >= 100) {
 			for (int i=0;i<pool.size();++i) {
-				sequenceVector.push_back(pool[i]);
+			  sequenceVector.push_back(pool[i]);
 			}
 			pool.clear();
 		}
 		pthread_mutex_unlock(&poolMutex);
 		if (sequenceVector.empty()) {
-			//Do something silly for some time
-			clock_t goal = 100 + clock();
+		  	//Do something silly for some time
+			clock_t goal = 10 + clock();
 			while (goal > clock());
 			continue;
 		}
-
-		for(i=0;i<sequenceVector.size(), NW.CommonSet.size()<=DesiredNofBarcodes ;++i){
-			NW.RetrieveUniqueNodes(randseqs[i]);
+		i=0;
+		while (i<sequenceVector.size()) {
+		  NW.RetrieveUniqueNodes(sequenceVector[i]);
+		  if (NW.CommonSet.size()>DesiredNofBarcodes)
+		    break;
+		  ++i;
 		}
+		sequenceVector.clear();
+
 		if(NW.CommonSet.size()%100==0)
 			cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
 
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
+	
+	//Cleanup generating threads!
+	pthread_mutex_lock(&poolMutex);
+	die = true;
+	cout << pool.size() << endl;
+	pool.clear();
+	pthread_mutex_unlock(&poolMutex);
 
 	FN.append(PutSeqFNS);
 	FN.append("_UniqueBarcodes.txt");

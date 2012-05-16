@@ -13,6 +13,7 @@
 #endif
 
 #include <string.h>
+#include <string>
 #include <limits>
 
 #include "util.h"
@@ -65,8 +66,10 @@ FILE* openFile(char* name)
 {
   FILE* file=NULL;
   char* buffer;
+  std::string path = "unafold/";
+  path += name;
 
-  file = fopen(name, "rt");
+  file = fopen(path.c_str(), "rt");
 
   if (!file && getenv("UNAFOLDDAT"))
     {
