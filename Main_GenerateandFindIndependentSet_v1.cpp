@@ -63,6 +63,8 @@ int main(){
 	vector <string> randseqs;
 	string randseq_revcomp;
 
+	pthread_mutex_init(&poolMutex,NULL);
+
 	Sequences.initialisevars();
 	Sequences.DetermineFilteringThresholds();
 	//Startup generating threads!

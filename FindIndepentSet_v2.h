@@ -9,7 +9,7 @@ public:
 	vector< vector <double> > Features;
 	int GenerateRandomNode(void);
 	void initialisevars(void);
-	static int CalculateEditDistance(string, string);
+	static int CalculateEditDistance(string&, string&);
 	void RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
 	static string RevComp(string);
@@ -41,7 +41,7 @@ void Network::initialisevars(void){
 //	dd=(unsigned int*) malloc(NofPutBarcodes*sizeof(unsigned int));
 
 }
-int Network::CalculateEditDistance(string s1, string s2){
+int Network::CalculateEditDistance(string& s1, string& s2){
 	
 	int x,y;
 	string s2_revcom;
@@ -50,9 +50,11 @@ int Network::CalculateEditDistance(string s1, string s2){
 
 	d[0][0] = 0;
 	
-	for(x = 1; x <= len; ++x) d[x][0] = x;
-	for(x = 1; x <= len; ++x) d[0][x] = x;
-	
+	for(x = 1; x <= len; ++x) {
+		d[x][0] = x;
+		d[0][x] = x;
+	}
+
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
 				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + (s1[x - 1] == s2[y - 1] ? 0 : 1) );
@@ -61,8 +63,10 @@ int Network::CalculateEditDistance(string s1, string s2){
 	  s2_revcom=Network::RevComp(s2);
 		d[0][0] = 0;
 
-		for(x = 1; x <= len; ++x) d[x][0] = x;
-		for(x = 1; x <= len; ++x) d[0][x] = x;
+		for(x = 1; x <= len; ++x) {
+			d[x][0] = x;
+			d[0][x] = x;
+		}
 
 		for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
