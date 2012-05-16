@@ -408,7 +408,6 @@ void* generateRandomChecked(void* args)
 	HybridSSMin* hybMin=new HybridSSMin();
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
-
 	while (true){
 	seq=mother->randomseq_setGC(GCcontent); //Generate Random Seq
 	seq_rc=mother->RevComp(seq);
@@ -425,18 +424,22 @@ void* generateRandomChecked(void* args)
 			Tm=(dH/dS)-273.15;
 			if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 				//Acquire lock
-				if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
+			  	if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
 					if (buffer.size() > 1000) {//Don't buffer more than 1000 sequences
-						pthread_mutex_lock(&poolMutex);
-						//Drop entire buffer to pool
-						for (int i=0; i<buffer.size();++i) {
-							pool.push_back(buffer[i]);
-						}
-						pthread_mutex_unlock(&poolMutex);
-						buffer.clear();
+					  pthread_mutex_lock(&poolMutex);
+					  if (die)
+					    break;
+					  //Drop entire buffer to pool
+					  for (int i=0; i<buffer.size(); ++i) {
+					      pool.push_back(buffer[i]);
+					  }
+					  pthread_mutex_unlock(&poolMutex);
+					  buffer.clear();
 					} else 
 						buffer.push_back(seq);
 				} else {
+				  if (die)
+				    break;
 					//Do stuff
 					pool.push_back(seq);
 					pthread_mutex_unlock(&poolMutex);
@@ -465,14 +468,13 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
 
 	//Start threads!
 	pthread_attr_t attr;
-
 	/* Initialize and set thread detached attribute */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_t someThread;
     //Create the world!
 	for (int i=0;i<N_THREADS;++i) {
-		params* p = new params();
+	  	params* p = new params();
 		p->id = i;
 		p->GCcontent = GCcontent;
 		p->father = new GenerateSequences();

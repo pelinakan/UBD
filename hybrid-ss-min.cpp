@@ -2423,7 +2423,7 @@ int HybridSSMin::equal(ENERGY a, ENERGY b)
   return a == b;
 #endif
 
-  if (!_finite(a) || !_finite(b))
+  if (!isFinite(a) || !isFinite(b))
     return 0;
 
   /* 2004-06-25: replaced relative difference with line below
