@@ -423,8 +423,9 @@ void* generateRandomChecked(void* args)
 			Tm=(dH/dS)-273.15;
 			if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 				//Acquire lock
+			  int poolSize = 0;
 			  	if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
-					if (buffer.size() > 200) {//Don't buffer more than 100 sequences
+					if (buffer.size() > 50) {//Don't buffer more than 100 sequences
 					  pthread_mutex_lock(&poolMutex);
 					  if (die)
 					    break;
@@ -432,6 +433,7 @@ void* generateRandomChecked(void* args)
 					  for (int i=0; i<buffer.size(); ++i) {
 					      pool.push_back(buffer[i]);
 					  }
+					  poolSize = pool.size();
 					  pthread_mutex_unlock(&poolMutex);
 					  buffer.clear();
 					} else 
@@ -441,7 +443,15 @@ void* generateRandomChecked(void* args)
 				    break;
 				  //Do stuff
 				  pool.push_back(seq);
+				  poolSize = pool.size();
 				  pthread_mutex_unlock(&poolMutex);
+				}
+				//Is the pool completely full?
+				if (poolSize > 2000) {//Sleep around for some time...
+				  do {
+				    pthread_yield();
+				    cout << "Yielding" << endl;
+				  }while (pool.size() != 0);
 				}
 			}
 		}
@@ -449,6 +459,7 @@ void* generateRandomChecked(void* args)
 
 	}
 	delete hybMin;
+	delete mother;
 	return NULL;
 }
 

@@ -71,11 +71,12 @@ int main(){
 	Sequences.GenerateRandomSequence_SetGC();
 	//Create local buffer.
 	vector<string> sequenceVector;
+	int miss = 0;
 	do{
 		//Wait for pool!
 		pthread_mutex_lock(&poolMutex);
 		//Check for size of pool
-		if (pool.size() >= 100) {
+		if (pool.size() >= 50) {
 			for (int i=0;i<pool.size();++i) {
 			  sequenceVector.push_back(pool[i]);
 			}
@@ -83,12 +84,13 @@ int main(){
 		}
 		pthread_mutex_unlock(&poolMutex);
 		if (sequenceVector.empty()) {
-		  	//Do something silly for some time
-			clock_t goal = 10 + clock();
-			while (goal > clock());
-			continue;
+		  //Do something silly for some time
+		  clock_t goal = 500 + clock();
+		  while (goal > clock());
+		  continue;
 		}
 		i=0;
+		miss += 1;
 		while (i<sequenceVector.size()) {
 		  NW.RetrieveUniqueNodes(sequenceVector[i]);
 		  if (NW.CommonSet.size()>DesiredNofBarcodes)
@@ -97,8 +99,8 @@ int main(){
 		}
 		sequenceVector.clear();
 
-		if(NW.CommonSet.size()%100==0)
-			cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
+		//if(NW.CommonSet.size()%100==0)
+		//cout << NW.CommonSet.size() << "   Barcodes Selected" << endl;
 
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
 	
