@@ -1,6 +1,37 @@
 #include <string>
 #include <map>
  
+template <typename Iterator>
+Iterator DNA_compress(const std::string &uncompressed, Iterator result) {
+  // Build the dictionary.
+  int dictSize = 4;
+  std::map<std::string,int> dictionary;
+  dictionary[std::string(1,'A')] = 0;
+  dictionary[std::string(1,'C')] = 1;
+  dictionary[std::string(1,'T')] = 2;
+  dictionary[std::string(1,'G')] = 3;
+  
+  std::string w;
+  for (std::string::const_iterator it = uncompressed.begin();
+       it != uncompressed.end(); ++it) {
+    char c = *it;
+    std::string wc = w + c;
+    if (dictionary.count(wc))
+      w = wc;
+    else {
+      *result++ = dictionary[w];
+      // Add wc to the dictionary.
+      dictionary[wc] = dictSize++;
+      w = std::string(1, c);
+    }
+  }
+ 
+  // Output the code for w.
+  if (!w.empty())
+    *result++ = dictionary[w];
+  return result;
+}
+
 // Compress a string to a list of output symbols.
 // The result will be written to the output iterator
 // starting at "result"; the final iterator is returned.
@@ -74,12 +105,16 @@ int lzw (string seq){
 	bool pass=0;
 
 	std::vector<int> compressed;
-	compress(seq, std::back_inserter(compressed));
+	//compress(seq, std::back_inserter(compressed));
+	DNA_compress(seq, std::back_inserter(compressed));
 //	copy(compressed.begin(), compressed.end(), std::ostream_iterator<int>(std::cout, ", "));
 //	std::cout << std::endl;
 //	std::string decompressed = decompress(compressed.begin(), compressed.end());
 //	std::cout << decompressed << std::endl;
  
+	/*if (seq.size()-compressed.size() != seq.size()-fc.size())
+		fprintf(stdout,"Not going to work!\n");*/
+
 	return (seq.size()-compressed.size());
  
 }

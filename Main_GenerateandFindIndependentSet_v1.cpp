@@ -15,7 +15,7 @@ using namespace std;
 
 //****U S E R S  S H O U L D  E N T E R   T H E S E   P A R A M E T E R S**************************//
 const int SeqLen=20; //LENGTH OF THE SEQUENCE IDENTIFIER (BARCODE)
-const unsigned long int DesiredNofBarcodes=1000; //NUMBER OF BARCODES NEEDED
+const unsigned long int DesiredNofBarcodes=100; //NUMBER OF BARCODES NEEDED
 string LeftAdaptor="ACACTCTTTCCCTACACGACGCTCTTCCGATCT"; //THE ADAPTOR SEQUENCE ADDED TO THE LEFT OF THE BARCODE (5')
 string RightAdaptor=""; //THE ADAPTOR SEQUENCE ADDED TO THE RIGHT OF THE BARCODE (3')
 const int homoplimit=4; //MAXIMUM NUMBER OF MONO, DI OR TRI-MERS ALLOWED WITHIN A BARCODE
