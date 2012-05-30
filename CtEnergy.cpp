@@ -11,7 +11,7 @@ CtEnergy::CtEnergy(void)
 {
 	//Set relevant variables 
 	g_nodangle = 0;
-	//Load all the crap here!
+	//Load all the necessary information
 	char* suffix = "DHD";
 	if (!g_nodangle)
 	loadDangleSuffix(g_dangle3, g_dangle5, suffix);
@@ -70,18 +70,6 @@ double CtEnergy::compute(HybridSSMin* hComp, int* bp, int* upst, int* dnst)
   tRatio = (t + 273.15) / 310.15;
   //Recombine, as the tRatio has changed!!!!!!!!!!!!!!!!!!!
 
-
-  /*for (i = 1; i < g_len; ++i)
-	fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", i, g_string[i - 1], i - 1, i + 1, bp[i - 1], i, upst[i - 1], dnst[i - 1]);
-      fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", g_len, g_string[g_len - 1], g_len - 1, 0, bp[g_len - 1], g_len, upst[g_len - 1], 0);
-
-for (i = 0; i < g_len; ++i)
-    {
-      if (!fgets(line, 80, file))
-	return 0;
-      g_upst[i] = g_dnst[i] = -1;
-      count = sscanf(line, "%d %c %d %d %d %d %d %d", &num, &g_bases[i], &g_prev[i], &g_next[i], &g_bp[i], &g_numbers[i], &g_upst[i], &g_dnst[i]);
-}*/
   int j,k,i;
   //We know this to be the case!
   g_hasStackingInfo = 1;

@@ -17,6 +17,7 @@
 #include "energy.h"
 
 class CtEnergy;
+class HybridMin;
 
 class HybridSSMin {
 
@@ -69,6 +70,7 @@ struct stack_node
 HybridSSMin();
 
 double computeGibsonFreeEnergy(double&, double&, const char*, double, double);
+void computeTwoProbeHybridization(double&, double&, const char*, const char*, double);
 void initializeMatrices();
 void fillMatrices1();
 void fillMatrices2();
@@ -143,28 +145,6 @@ int *g_next, *g_prev;
 int *g_upst, *g_dnst;
 int g_hasStackingInfo;
 stack_node *stack;
-/*//For ct-energy...
-
-int g_hasStackingInfo;
-
-stack_node* new_top;
-int ds, ss1, ss2, open, is_exterior;
-double eloop, etotal;
-
-//All the CT function declarations
-int ct_isCircular();
-int ct_isHomodimer();
-double ct_tstackOrDangle(int i, int j, int external);
-double ct_chooseDangle(int a, int b);
-double ct_auPenalty(int i, int j);
-double ct_Ee(int i, int j, int ds);
-double ct_Ebi(int i, int j, int ii, int jj);
-double ct_Es(int i, int j);
-double ct_Eh(int i, int j);
-double ct_Etstacke(int i, int j);
-double ct_Etstackm(int i, int j);
-double ct_Ed3(int i, int j, int k);
-double ct_Ed5(int i, int j, int k);*/
 
 ENERGY g_dangle3[5][5][6];
 ENERGY g_dangle5[5][5][6];
@@ -232,5 +212,5 @@ private:
 	struct hexaloopE* hexaloopEnthalpies;
 
 	CtEnergy* enComputer;
+	HybridMin* hybridComputer;
 };
-//#include "options.h"

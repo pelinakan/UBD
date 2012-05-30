@@ -11,13 +11,23 @@ public:
 	void initialisevars();
 	int CalculateEditDistance(string, string);
 	void GenerateNetwork(vector <string>&);
-	int FindMin(void);
-	int FindMax(void);
-	void DegreeDist(char*, char *, vector <string>&);
+	unsigned long long FindMin(void);
+	unsigned long long FindMax(void);
+	void DegreeDist(char*, char * /*,vector <string>&*/);
 	string RevComp(string);
+private:
+	unsigned int** d;
 };
 
-DegreeDistribution::DegreeDistribution(){}
+DegreeDistribution::DegreeDistribution(){
+	d = new unsigned int*[SeqLen+1];
+	for (int i=0;i<=SeqLen;++i) {
+		d[i] = new unsigned int[SeqLen+1];
+	}
+	d[0][0] = 0;
+	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
+	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
+}
 
 void DegreeDistribution::initialisevars(){
 
@@ -48,13 +58,13 @@ int DegreeDistribution::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
 	string s2_revcom;
-	unsigned int d[SeqLen+1][SeqLen+1];
+	//unsigned int d[SeqLen+1][SeqLen+1];
 	const int len=SeqLen;
 
-	d[0][0] = 0;
+	/*d[0][0] = 0;
 	
 	for(x = 1; x <= len; ++x) d[x][0] = x;
-	for(x = 1; x <= len; ++x) d[0][x] = x;
+	for(x = 1; x <= len; ++x) d[0][x] = x;*/
 	
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
@@ -103,9 +113,9 @@ initialisevars();
 	cout << "Network Connected" << endl;
 
 }
-int DegreeDistribution::FindMin(void){
+unsigned long long DegreeDistribution::FindMin(void){
 
-	unsigned long long int i, m=EditDist[0],mineditdist=0;
+	unsigned long long i, m=EditDist[0],mineditdist=0;
 
 	for(i=1;i<NofIndexes;i++){
 		if(m>EditDist[i]){
@@ -115,10 +125,10 @@ int DegreeDistribution::FindMin(void){
 	}
 	return mineditdist;
 }
-int DegreeDistribution::FindMax(void){
+unsigned long long DegreeDistribution::FindMax(void){
 
-	unsigned long long int i;
-	unsigned int m,maxeditdist=0;
+	unsigned long long i;
+	unsigned long long m,maxeditdist=0;
 
 	m=EditDist[0];
 	for(i=1;i<NofIndexes;i++){
@@ -131,11 +141,11 @@ int DegreeDistribution::FindMax(void){
 	}
 	return maxeditdist;
 }
-void DegreeDistribution::DegreeDist(char *fname, char *fname2, vector <string> &IndependentSet){
+void DegreeDistribution::DegreeDist(char *fname, char *fname2 /*,vector <string> &IndependentSet*/){
 
-unsigned long long int i;
+unsigned long long i;
 unsigned long int edi=0,j,nodeindex=0,nodedegree;
-int MinED, MaxED,ed,lastnodedd=0;
+unsigned long long MinED, MaxED,ed,lastnodedd=0;
 
 vector< vector < unsigned long int> > dd; //Degree Distribution
 

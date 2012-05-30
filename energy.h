@@ -19,8 +19,8 @@
 #ifdef INTEGER
 # define isFinite(x) (x < INFINITY / 2)
 #else
-//#define finite(x) (_finite(x) && !_isnan(x))
-#define finite(x) (finite(x) && !isnan(x))
+#define finite(x) (_finite(x) && !_isnan(x) && x != 999999)
+//#define finite(x) (finite(x) && !isnan(x))
 #define isFinite(x) (finite(x))
 #endif
 
@@ -29,7 +29,7 @@
 #endif
 
 extern const ENERGY INFINITY;
-extern const double R;
+//extern const double R;
 extern const char BASES[5];
 extern const char BASE_PAIRS[6][4];
 

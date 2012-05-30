@@ -16,23 +16,34 @@ using namespace std;
 class GenerateSequences{
 
 public:
-	vector <string> IlluminaHandles;
-	vector <string> FileNames;
-	vector<string> PutBarcodes; //Keep the putative barcodes
+	//Constructor
+	GenerateSequences();
+	~GenerateSequences();
+	/*DEPRECATED!*/
+	//vector <string> IlluminaHandles;
+	//vector <string> FileNames;
+	//vector<string> PutBarcodes; //Keep the putative barcodes
+	//bool SecondaryStructure(string,int,string); DEPRECATED
+	//bool hybridise(string,int,int,string); DEPRECATED
+	//void initialisevars();
+	/*-----------*/
+	
 	vector< vector <double> > Features;
 	string randomseq_setGC(int);
 	void convertseqtobinary(string,vector<bool>&);
 	void convertbinarytoseq(vector<bool>&,string);
 	bool checkforruns(string);
 	string RevComp(string);
-	void initialisevars();
-	static int CalculateEditDistance(string,string);
-	bool SecondaryStructure(string,int,string);
-	bool hybridise(string,int,int,string);
+	int CalculateEditDistance(string,string);
 	static string AppendAdaptors(string&);
 	void DetermineFilteringThresholds(void);
 	void GenerateRandomSequence_SetGC();
+
+private:
+	unsigned int** d;
 };
+
+/*
 void GenerateSequences::initialisevars(void){
 	
 	IlluminaHandles.push_back("ACACTCTTTCCCTACACGACGCTCTTCCGATCT"); //IlluminaAHandle
@@ -55,7 +66,7 @@ void GenerateSequences::initialisevars(void){
 	ofstream seqout4("AuxSeqFile4");
 	seqout4 << IlluminaHandles[3];
 	seqout4.close();
-}
+}*/
 
 void GenerateSequences::convertseqtobinary(string str, vector<bool> &binseq){
 int i=0,j=0;
@@ -81,6 +92,25 @@ for(i=0;i<SeqLen;i++){
 }
 }
 
+GenerateSequences::GenerateSequences()
+{
+	d = new unsigned int*[SeqLen+1];
+	for (int i=0;i<=SeqLen;++i) {
+		d[i] = new unsigned int[SeqLen+1];
+	}
+	d[0][0] = 0;
+	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
+	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
+}
+
+GenerateSequences::~GenerateSequences()
+{
+	//Don't leak d
+	for (int i=0;i<=SeqLen;++i) {
+		delete[] d[i];
+	}
+	delete[] d;
+}
 
 void GenerateSequences::convertbinarytoseq(vector<bool> &binseq,string str)
 {
@@ -109,7 +139,7 @@ string GenerateSequences::randomseq_setGC(int GCcontent){
 
    int i,x,noffilledpos=0;
    double slen,y;
-   bool filled[SeqLen];
+   bool* filled = new bool[SeqLen];
    string qual,randseq;
 
    randseq.resize(SeqLen);
@@ -137,6 +167,7 @@ string GenerateSequences::randomseq_setGC(int GCcontent){
 			   randseq[i]='T';
 	   }
    }
+   delete[] filled;
    return randseq;
 }
 
@@ -194,7 +225,7 @@ l=Tag.length();
 // runs of trimers >2 checked
 	return selected;
 }
-bool GenerateSequences::SecondaryStructure(string Tag, int tn,string Tstring ){
+/*bool GenerateSequences::SecondaryStructure(string Tag, int tn,string Tstring ){
 
 	double dG,dH,dS,Tm;
 	string seqfilename="foldseq",outfname="foldseqout",ctfilename="foldseq";
@@ -264,15 +295,16 @@ bool GenerateSequences::SecondaryStructure(string Tag, int tn,string Tstring ){
 		pass=1;
 
 	return pass;
-}
+}*/
+
 //Check complexity of the index with lzw compression. 
 //A low complexity seq will be compressed easily than a complex one.
 //The size of compressed seq will be then lower. The size difference between the 
 //compressed and uncompressed one will be higher.
-bool GenerateSequences::hybridise(string s1, int whichhandle, int tn,string Tstring){ 
+/*bool GenerateSequences::hybridise(string s1, int whichhandle, int tn,string Tstring){ 
 
 	string fn="hybseq", outfname, hyboutline,temp;
-	string command="hybrid-min";
+	string command="hybrid-min ";
 	double dG,dH,dS,Tm;
 	bool pass=0;
 	
@@ -280,14 +312,14 @@ bool GenerateSequences::hybridise(string s1, int whichhandle, int tn,string Tstr
 	std::stringstream ss;
 	ss << tn;
 
-	command.append(ss.str());
-	command.append(Tstring);
+	//command.append(ss.str());
+	command+= " " + Tstring;
 	
 	fn.append(ss.str());
 	ofstream seqfile(fn.c_str());
 	seqfile << s1; 
 	seqfile.close();
-	
+
 	command.append(FileNames[whichhandle]);
 	command.append(" ");
 	command.append(fn.c_str());
@@ -322,7 +354,8 @@ bool GenerateSequences::hybridise(string s1, int whichhandle, int tn,string Tstr
 	if(Tm<=(Hyb_Temperature+(0.1*Hyb_Temperature)))
 		pass=1;
 	return pass;
-}
+}*/
+
 string GenerateSequences::RevComp(string s){	
 	int z;
 	string s_revcom;
@@ -342,13 +375,13 @@ int GenerateSequences::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
 	string s2_revcom;
-	unsigned int d[SeqLen+1][SeqLen+1];
+	//unsigned int **d = new unsigned int*[SeqLen+1];
 	const int len=SeqLen;
 
-	d[0][0] = 0;
+	/*d[0][0] = 0;
 	
 	for(x = 1; x <= len; ++x) d[x][0] = x;
-	for(x = 1; x <= len; ++x) d[0][x] = x;
+	for(x = 1; x <= len; ++x) d[0][x] = x;*/
 	
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
@@ -393,31 +426,48 @@ LenDiffThreshold=SeqLen-lwzscore;
 }
 
 typedef struct {
-	int id,GCcontent;
+	int GCcontent;
 	GenerateSequences* father;
 }params;
 
 void* generateRandomChecked(void* args)
 {
+	//Illumina handles
+	//TODO - sholdn't these be read from somewhere?
+	vector<string> IlluminaHandles;
+	IlluminaHandles.push_back("ACACTCTTTCCCTACACGACGCTCTTCCGATCT"); //IlluminaAHandle
+	IlluminaHandles.push_back("AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"); //IlluminaAHandleReverseComplement
+	IlluminaHandles.push_back("GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT"); //IlluminaBHandle
+	IlluminaHandles.push_back("AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"); //IlluminaBHandleReverseComplement
+	
+	long int random_rejects = 0;
 	string seq,seq_rc,probe;
 	int lzwscore,ed;
-	bool passedrepeatcheck,final;
+	bool passedrepeatcheck;
 	params *p = (params*)args;
-	int this_thread = p->id;
 	int GCcontent = p->GCcontent;
 	HybridSSMin* hybMin=new HybridSSMin();
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
-	while (true){
+	while (true){		
 	seq=mother->randomseq_setGC(GCcontent); //Generate Random Seq
 	seq_rc=mother->RevComp(seq);
-	ed= GenerateSequences::CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
+	ed= mother->CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
 	if(ed>=EditDistanceThreshold_Self){
 		passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
 		lzwscore=lzw(seq); // Check for complexity
 		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
-			probe= GenerateSequences::AppendAdaptors(seq);
+			//CHECK ILLUMINA HANDLE VS BARCODE HYB
 			double dG, dS,dH,Tm;
+			for (int i=0; i< (int)IlluminaHandles.size(); ++i) {
+				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
+				dS=(dH-dG)/(273.15+ Hyb_Temperature);
+				Tm=dH/(dS+R*log(0.00001/4));
+				if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
+					continue;
+				}
+			}
+			probe= GenerateSequences::AppendAdaptors(seq);
 			hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
 			dS=(dH-dG)/(273.15+ SelfHybT);
 			Tm=(dH/dS)-273.15;
@@ -430,7 +480,7 @@ void* generateRandomChecked(void* args)
 					  if (die)
 					    break;
 					  //Drop entire buffer to pool
-					  for (int i=0; i<buffer.size(); ++i) {
+					  for (int i=0; i< (int)buffer.size(); ++i) {
 					      pool.push_back(buffer[i]);
 					  }
 					  poolSize = pool.size();
@@ -447,19 +497,22 @@ void* generateRandomChecked(void* args)
 				  pthread_mutex_unlock(&poolMutex);
 				}
 				//Is the pool completely full?
-				if (poolSize > 5000) {//Sleep around for some time...
+				if (poolSize > 5000) {//Sleep around for some time... (:P)
 				  do {
-				    pthread_yield();
-				    usleep(1000);
+				    //pthread_yield();
+				    //usleep(1000);
 				  }while (pool.size() != 0);
 				}
 			}
+		} else {
+			++random_rejects;	
 		}
 	}
 
 	}
 	delete hybMin;
 	delete mother;
+	fprintf(stdout,"%ld\n",random_rejects);
 	return NULL;
 }
 
@@ -485,10 +538,12 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
     //Create the world!
 	for (int i=0;i<1;++i) {
 	  	params* p = new params();
-		p->id = i;
 		p->GCcontent = GCcontent;
 		p->father = new GenerateSequences();
 		int rc = pthread_create(&someThread,&attr,&generateRandomChecked,p);
+		if (rc != 0) {//Thread creation failed!
+			fprintf(stderr,"Unable to create thread. Error code %d returned\n",rc);
+		}
 	}
 
 }

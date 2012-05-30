@@ -1,6 +1,7 @@
 #include "hybrid-ss-min.h"
 #include "util.h"
 #include "CtEnergy.h"
+#include "HybridMin.h"
 
 double interiorLoopEnergies[30] = {999999,5,3.2,3.6,4,4.4,4.6,4.8,4.9,4.9,4.9,5,5.1,5.2,5.2,5.3,5.3,5.4,5.5,5.5,5.6,5.6,5.7,5.7,5.7,5.8,5.8,5.9,5.9,5.9};
 double bulgeLoopEnergies[30] = {4,2.9,3.1,3.2,3.3,3.5,3.7,3.8,3.9,4,4.1,4.2,4.2,4.3,4.3,4.4,4.4,4.5,4.6,4.6,4.7,4.7,4.8,4.8,4.9,4.9,5,5.1,5.1,5.2};
@@ -22,6 +23,7 @@ HybridSSMin::HybridSSMin()
 
 	//Initialize ctEn computer
 	enComputer = new CtEnergy();
+	hybridComputer = new HybridMin();
 
 	char gotSeq;
   int count, i, j;
@@ -60,21 +62,7 @@ HybridSSMin::HybridSSMin()
   /* initializations below are unnecessary but prevent compiler warnings */
   g_string = NULL;
 
-	if (NA == 0 && (naConc != 1.0 || mgConc != 0.0 || polymer))
-    fputs("Warning: salt concentrations ignored for RNA\n", stderr);
-
-	/* tMin..tInc..tMax better make sense */
-	/*if (tMin > tMax)
-    {
-      fputs("Error: tMax must be greater than or equal to tMin.\n", stderr);
-      return; //EXIT_FAILURE;
-    }
-	if (tMin + tInc == tMin)
-    {
-      fputs("Error: tInc is too small compared to tMin.\n", stderr);
-      return; //EXIT_FAILURE;
-    }
-	g_oneTemp = (tMin + tInc > tMax) ? 1 : 0;*/
+	//	g_oneTemp = (tMin + tInc > tMax) ? 1 : 0;
 
 	if (g_maxLoop < 0)
 		g_maxLoop = 999999999;
@@ -147,6 +135,11 @@ HybridSSMin::HybridSSMin()
 		combineTloop(tloopEnergies, tloopEnthalpies, tRatio, g_tloop, numTloops);
 		combineHexaloop(hexaloopEnergies, hexaloopEnthalpies, tRatio, g_hexaloop, numHexaloops);
 
+}
+
+void HybridSSMin::computeTwoProbeHybridization(double& dG, double& dH, const char* seq1, const char* seq2, double temp)
+{
+	hybridComputer->compute(dG,dH,seq1,seq2,temp);
 }
 
 double HybridSSMin::computeGibsonFreeEnergy(double& gE, double& ctE, const char* sequence, double tMin=37.0, double tMax=37.0)

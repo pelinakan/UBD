@@ -38,7 +38,6 @@ const char BASE_PAIRS[6][4] = {"A-U", "C-G", "G-C", "U-A", "G-U", "U-G"};
 const ENERGY INFINITY = 999999;
 #else
 #define scale(d) ((d) * PRECISION)
-//const ENERGY INFINITY = 1.0 / 0.0;
 const ENERGY INFINITY = std::numeric_limits<double>::infinity();
 #endif
 
@@ -550,7 +549,7 @@ void minZeroDangle(ENERGY dangle3[5][5][6], ENERGY dangle5[5][5][6])
 void loadLoop(double hairpinLoopEnergies[30], double interiorLoopEnergies[30], double bulgeLoopEnergies[30], double hairpinLoopEnthalpies[30], double interiorLoopEnthalpies[30], double bulgeLoopEnthalpies[30], int NA, double saltCorrection)
 {
   int k;
-  /*FILE *gFile, *hFile;
+  FILE *gFile, *hFile;
 
   if (NA)
     {
@@ -561,18 +560,18 @@ void loadLoop(double hairpinLoopEnergies[30], double interiorLoopEnergies[30], d
     {
       gFile = openFile("loop.DG");
       hFile = openFile("loop.DH");
-    }*/
+    }
 
   for (k = 0; k < 30; ++k)
     {
-	//fscanf( gFile, "%*f%lf%lf%lf", &interiorLoopEnergies[k], &bulgeLoopEnergies[k], &hairpinLoopEnergies[k]);
-      bulgeLoopEnergies[k] += saltCorrection * (1.0 + 0.5 * min(k, 10));
-      interiorLoopEnergies[k] += saltCorrection * (1.0 + 0.5 * min(k, 10));
-    //fscanf( hFile, "%*f%lf%lf%lf", &interiorLoopEnthalpies[k], &bulgeLoopEnthalpies[k], &hairpinLoopEnthalpies[k]);
+		fscanf( gFile, "%*f%lf%lf%lf", &interiorLoopEnergies[k], &bulgeLoopEnergies[k], &hairpinLoopEnergies[k]);
+		bulgeLoopEnergies[k] += saltCorrection * (1.0 + 0.5 * min(k, 10));
+		interiorLoopEnergies[k] += saltCorrection * (1.0 + 0.5 * min(k, 10));
+		fscanf( hFile, "%*f%lf%lf%lf", &interiorLoopEnthalpies[k], &bulgeLoopEnthalpies[k], &hairpinLoopEnthalpies[k]);
     }
 
-  /*fclose(gFile);
-  fclose(hFile);*/
+  fclose(gFile);
+  fclose(hFile);
 }
 
 void combineLoop(double hairpinLoopEnergies[30], double interiorLoopEnergies[30], double bulgeLoopEnergies[30], double hairpinLoopEnthalpies[30], double interiorLoopEnthalpies[30], double bulgeLoopEnthalpies[30], double tRatio, ENERGY hairpinLoop[30], ENERGY interiorLoop[30], ENERGY bulgeLoop[30])
@@ -1531,7 +1530,7 @@ void loadMulti2Suffix(ENERGY multi[3], char* suffix)
 
 void loadMisc(double miscEnergies[13], double miscEnthalpies[13], int NA)
 {
-/*  FILE *gFile, *hFile;
+  FILE *gFile, *hFile;
 
   if (NA)
     {
@@ -1544,11 +1543,13 @@ void loadMisc(double miscEnergies[13], double miscEnthalpies[13], int NA)
       hFile = openFile("miscloop.DH");
     }
 
-  readOrDie(13, "miscloop", gFile, "%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnergies[12], &miscEnergies[4], &miscEnergies[0], &miscEnergies[1], &miscEnergies[2], &miscEnergies[3], &miscEnergies[6], &miscEnergies[8], &miscEnergies[9], &miscEnergies[10], &miscEnergies[11], &miscEnergies[5], &miscEnergies[7]);
-  readOrDie(13, "miscloop", hFile, "%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnthalpies[12], &miscEnthalpies[4], &miscEnthalpies[0], &miscEnthalpies[1], &miscEnthalpies[2], &miscEnthalpies[3], &miscEnthalpies[6], &miscEnthalpies[8], &miscEnthalpies[9], &miscEnthalpies[10], &miscEnthalpies[11], &miscEnthalpies[5], &miscEnthalpies[7]);
+  //readOrDie(13, "miscloop", gFile, "%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnergies[12], &miscEnergies[4], &miscEnergies[0], &miscEnergies[1], &miscEnergies[2], &miscEnergies[3], &miscEnergies[6], &miscEnergies[8], &miscEnergies[9], &miscEnergies[10], &miscEnergies[11], &miscEnergies[5], &miscEnergies[7]);
+  fscanf(gFile,"%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnergies[12], &miscEnergies[4], &miscEnergies[0], &miscEnergies[1], &miscEnergies[2], &miscEnergies[3], &miscEnergies[6], &miscEnergies[8], &miscEnergies[9], &miscEnergies[10], &miscEnergies[11], &miscEnergies[5], &miscEnergies[7]);
+  //readOrDie(13, "miscloop", hFile, "%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnthalpies[12], &miscEnthalpies[4], &miscEnthalpies[0], &miscEnthalpies[1], &miscEnthalpies[2], &miscEnthalpies[3], &miscEnthalpies[6], &miscEnthalpies[8], &miscEnthalpies[9], &miscEnthalpies[10], &miscEnthalpies[11], &miscEnthalpies[5], &miscEnthalpies[7]);
+  fscanf(hFile,"%lg%lg%lg%lg%lg%lg%*g%*g%*g%*g%*g%*g%lg%lg%lg%lg%lg%lg%lg", &miscEnthalpies[12], &miscEnthalpies[4], &miscEnthalpies[0], &miscEnthalpies[1], &miscEnthalpies[2], &miscEnthalpies[3], &miscEnthalpies[6], &miscEnthalpies[8], &miscEnthalpies[9], &miscEnthalpies[10], &miscEnthalpies[11], &miscEnthalpies[5], &miscEnthalpies[7]);
 
   fclose(gFile);
-  fclose(hFile);*/
+  fclose(hFile);
 }
 
 void combineMisc(double miscEnergies[13], double miscEnthalpies[13], double tRatio, ENERGY misc[13])

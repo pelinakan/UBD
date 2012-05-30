@@ -102,19 +102,14 @@ std::string decompress(Iterator begin, Iterator end) {
  
 int lzw (string seq){
 
-	bool pass=0;
-
 	std::vector<int> compressed;
-	//compress(seq, std::back_inserter(compressed));
 	DNA_compress(seq, std::back_inserter(compressed));
-//	copy(compressed.begin(), compressed.end(), std::ostream_iterator<int>(std::cout, ", "));
+
+	//	copy(compressed.begin(), compressed.end(), std::ostream_iterator<int>(std::cout, ", "));
 //	std::cout << std::endl;
 //	std::string decompressed = decompress(compressed.begin(), compressed.end());
 //	std::cout << decompressed << std::endl;
  
-	/*if (seq.size()-compressed.size() != seq.size()-fc.size())
-		fprintf(stdout,"Not going to work!\n");*/
-
 	return (seq.size()-compressed.size());
  
 }

@@ -13,9 +13,19 @@ public:
 	void RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
 	static string RevComp(string);
+private:
+	unsigned int** d;
 };
 
-Network::Network(){}
+Network::Network(){
+	d = new unsigned int*[SeqLen+1];
+	for (int i=0;i<=SeqLen;++i) {
+		d[i] = new unsigned int[SeqLen+1];
+	}
+	d[0][0] = 0;
+	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
+	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
+}
 
 string Network::RevComp(string s){	
 	int z;
@@ -32,7 +42,7 @@ string Network::RevComp(string s){
 	return s_revcom;
 }
 void Network::initialisevars(void){
-	int i;
+	unsigned int i;
 	Used=(bool*) malloc((NofPutBarcodes)*sizeof(bool));
 	for(i=0;i<NofPutBarcodes;i++)
 		Used[i]=0;
@@ -45,15 +55,15 @@ int Network::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
 	string s2_revcom;
-	unsigned int d[SeqLen+1][SeqLen+1];
+	//unsigned int d[SeqLen+1][SeqLen+1];
 	const int len=SeqLen;
 
-	d[0][0] = 0;
+	/*d[0][0] = 0;
 	
 	for(x = 1; x <= len; ++x) {
 		d[x][0] = x;
 		d[0][x] = x;
-	}
+	}*/
 
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)

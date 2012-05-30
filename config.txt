@@ -1,0 +1,28 @@
+#general settings
+
+desiredBarcodeLength = 20
+leftAdaptor = ACACTCTTTCCCTACACGACGCTCTTCCGATCT
+#rightAdaptor
+homopolymerLimit = 4
+minGC = 0.45
+maxGC = 0.65
+selfHybridizationTemperature = 50.0
+hybridizationTemperature = 50.0
+minEditDistance = 4
+minEditDistanceSelf = 5
+
+#others
+<handles>
+#Illumina A Handle
+ACACTCTTTCCCTACACGACGCTCTTCCGATCT
+#Illumina A Handle rev. compl.
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+#Illumina B Handle
+GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT
+#Illumina B Handle rev. compl.
+AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+</handles>
+
+<restrictionSites>
+
+</restrictionSites> 
