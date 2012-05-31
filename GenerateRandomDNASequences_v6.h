@@ -248,8 +248,10 @@ bool addToPool(string seq, vector<string>& buffer)
 	//Is the pool completely full?
 	if (poolSize > 5000) {//Sleep around for some time... (:P)
 		do {
-			//pthread_yield();
-			//usleep(1000);
+#ifdef __linux__
+			pthread_yield();
+			usleep(1000);
+#endif
 		}while (pool.size() != 0);
 	}
 	return true;
@@ -350,132 +352,4 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
 	}
 
 }
-
-/*void GenerateSequences::GenerateRandomSequence_SetGC(vector<bool> &pass, vector<string> &seqs){
-
-
-	int i, gcmin,gcmax,GCcontent;
-	gcmin=MinGC*SeqLen;	gcmax=MaxGC*SeqLen;
-
-	int x = (int) ((gcmax-gcmin)*rand()/(RAND_MAX+1.0)); //SET THE GC CONTENT
-	GCcontent=gcmin+x; //SET THE GC CONTENT
-	
-	omp_set_num_threads(N_THREADS);
-	
-	for(i=0;i<N_THREADS;++i)
-		seqs[i]=((randomseq_setGC(GCcontent))); //Generate Random Seq
-
-#pragma omp parallel 
-{	
-	string seq_rc,probe;
-	int lzwscore,ed;
-	bool passedrepeatcheck;
-	int this_thread = omp_get_thread_num();
-	
-	seq_rc=RevComp(seqs[this_thread]);
-	ed=CalculateEditDistance(seqs[this_thread],seq_rc); //Check ED between seq and its reverse complement
-	if(ed>=EditDistanceThreshold_Self){
-		passedrepeatcheck=checkforruns(seqs[this_thread]); // Check for repeats
-		lzwscore=lzw(seqs[this_thread]); // Check for complexity
-//		cout << this_thread << seqs[this_thread] << endl;
-		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
-			probe=AppendAdaptors(seqs[this_thread]);
-			double dG, dS,dH,Tm;
-			HybridSSMin* ceva=new HybridSSMin();
-			ceva->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
-			int *p_var = new int;
-			delete ceva;
-			ceva = 0;
-			dS=(dH-dG)/(273.15+ SelfHybT);
-			Tm=(dH/dS)-273.15;
-			if(Tm<=(SelfHybT+(0.1*SelfHybT)))
-					pass[this_thread]=1;
-			else
-				pass[this_thread]=0;
-		}
-	}
-} //END OF PARALLEL SECTION
-/*
-	if(pass[this_thread]){
-		for(i=1;i<4;i++){
-			pass[this_thread]=hybridise(seqs[this_thread],i,this_thread,Tstr);//CHECK ILLUMINA HANDLE VS BARCODE HYB
-			if(!pass[this_thread]) break;
-		}
-	}
-
-
-	
-
-}*/
-
-/*
- * 	//---------Test vars----------
-	long totalGenerated = 0;
-	long rejectedByEDToReverseComplement = 0;
-	long rejectedByRuns = 0;
-	long rejectedByLZW = 0;
-	long rejectedByHandleHybridization = 0;
-	long rejectedBySelfHybridization = 0;
-	FILE *test = fopen("bayes.out","w");
-	//----------------------------
-	 *
-	 * fprintf(stdout,"%ld\n",random_rejects);
-	FILE *c = fopen("distr.out","w");
-	fprintf(c,"%ld\n%ld\n%ld\n%ld\n%ld\n%ld\n",totalGenerated, rejectedByEDToReverseComplement, rejectedByRuns,
-			rejectedByLZW, rejectedByHandleHybridization, rejectedBySelfHybridization);
-	fclose(c);
-	fclose(test);
- */
-
-/*
- * if (ed < EditDistanceThreshold_Self) {
-		fprintf(test,"1\t");
-		++rejectedByEDToReverseComplement;
-	} else {
-		fprintf(test,"0\t");
-	}
-	passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
-	if (!passedrepeatcheck) {
-		fprintf(test,"1\t");
-		++rejectedByRuns;
-	} else {
-		fprintf(test,"0\t");
-	}
-	lzwscore=lzw(seq); // Check for complexity
-	if (lzwscore > LenDiffThreshold) {
-		fprintf(test,"1\t");
-		++rejectedByLZW;
-	} else {
-		fprintf(test,"0\t");
-	}
-	//CHECK ILLUMINA HANDLE VS BARCODE HYB
-	double dG, dS,dH,Tm;
-	bool rejected = false;
-	for (int i=0; i < IlluminaHandles.size(); ++i) {
-		hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
-		dS=(dH-dG)/(273.15+ Hyb_Temperature);
-		Tm=dH/(dS+R*log(0.00001/4));
-		Tm-=273.15;
-		if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
-			rejected = true;
-			++rejectedByHandleHybridization;
-			break;
-		}
-	}
-	if (rejected) {
-		fprintf(test,"1\t");
-	} else {
-		fprintf(test,"0\t");
-	}
-	probe= GenerateSequences::AppendAdaptors(seq);
-	hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
-	dS=(dH-dG)/(273.15+ SelfHybT);
-	Tm=(dH/dS)-273.15;
-	if(Tm>(SelfHybT+(0.1*SelfHybT))) {
-		fprintf(test,"1\n");
-		++rejectedBySelfHybridization;
-	} else {
-		fprintf(test,"0\n");
-	}
- */
 

@@ -67,7 +67,7 @@ bool die = false;
 //**********************************************
 
 //***************I/O FILE NAMES****************************************************
-string PutSeqFNS="RandomSeqs_20mers";
+string PutSeqFNS="";
 //************************************************************************
 
 /**
@@ -185,6 +185,14 @@ int main(int argc, char *argv[]){
 			break;
 		}
 	}
+
+	if (optind + 1 != argc) {//Something is wrong with the parameters
+		print_usage();
+		return -1;
+	}
+	//Output file name
+	PutSeqFNS = argv[optind];
+
 	//Parse config file
 	parseConfig(configPath);
 
