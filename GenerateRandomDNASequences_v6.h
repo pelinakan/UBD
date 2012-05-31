@@ -19,19 +19,9 @@ public:
 	//Constructor
 	GenerateSequences();
 	~GenerateSequences();
-	/*DEPRECATED!*/
-	//vector <string> IlluminaHandles;
-	//vector <string> FileNames;
-	//vector<string> PutBarcodes; //Keep the putative barcodes
-	//bool SecondaryStructure(string,int,string); DEPRECATED
-	//bool hybridise(string,int,int,string); DEPRECATED
-	//void initialisevars();
-	/*-----------*/
 	
 	vector< vector <double> > Features;
 	string randomseq_setGC(int);
-	void convertseqtobinary(string,vector<bool>&);
-	void convertbinarytoseq(vector<bool>&,string);
 	bool checkforruns(string);
 	string RevComp(string);
 	int CalculateEditDistance(string,string);
@@ -42,55 +32,6 @@ public:
 private:
 	unsigned int** d;
 };
-
-/*
-void GenerateSequences::initialisevars(void){
-	
-	IlluminaHandles.push_back("ACACTCTTTCCCTACACGACGCTCTTCCGATCT"); //IlluminaAHandle
-	FileNames.push_back("AuxSeqFile1");
-	ofstream seqout1("AuxSeqFile1");
-	seqout1 << IlluminaHandles[0];
-	seqout1.close();
-	IlluminaHandles.push_back("AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"); //IlluminaAHandleReverseComplement
-	FileNames.push_back("AuxSeqFile2");
-	ofstream seqout2("AuxSeqFile2");
-	seqout2 << IlluminaHandles[1];
-	seqout2.close();	
-	IlluminaHandles.push_back("GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT"); //IlluminaBHandle
-	FileNames.push_back("AuxSeqFile3");
-	ofstream seqout3("AuxSeqFile3");
-	seqout3 << IlluminaHandles[2];
-	seqout3.close();
-	IlluminaHandles.push_back("AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"); //IlluminaBHandleReverseComplement
-	FileNames.push_back("AuxSeqFile4");
-	ofstream seqout4("AuxSeqFile4");
-	seqout4 << IlluminaHandles[3];
-	seqout4.close();
-}*/
-
-void GenerateSequences::convertseqtobinary(string str, vector<bool> &binseq){
-int i=0,j=0;
-
-
-for(i=0;i<SeqLen;i++){
-	if(str[i]=='G' || str[i]=='C'){
-		binseq.push_back(1);
-		j++;
-		if(str[i]=='G')
-			binseq.push_back(1);
-		else
-			binseq.push_back(0);
-	}
-	else{
-		binseq.push_back(0);
-		j++;
-		if(str[i]=='A')
-			binseq.push_back(1);
-		else
-			binseq.push_back(0);
-	}
-}
-}
 
 GenerateSequences::GenerateSequences()
 {
@@ -112,29 +53,6 @@ GenerateSequences::~GenerateSequences()
 	delete[] d;
 }
 
-void GenerateSequences::convertbinarytoseq(vector<bool> &binseq,string str)
-{
-	int i=0,j=0;
-
-for(i=0;i<SeqLen;i++){
-	if(binseq[j]==1){
-		j++;
-		if(binseq[j]==1)
-			str.append("G");
-		else
-			str.append("C");
-	}
-	else{
-		j++;
-		if(binseq[j]==1)
-			str.append("A");
-		else
-			str.append("T");
-	}
-	j++;
-}
-
-}
 string GenerateSequences::randomseq_setGC(int GCcontent){
 
    int i,x,noffilledpos=0;
@@ -225,136 +143,6 @@ l=Tag.length();
 // runs of trimers >2 checked
 	return selected;
 }
-/*bool GenerateSequences::SecondaryStructure(string Tag, int tn,string Tstring ){
-
-	double dG,dH,dS,Tm;
-	string seqfilename="foldseq",outfname="foldseqout",ctfilename="foldseq";
-	string command="hybrid-ss-min";
-	string command2="ct-energy";
-//	string command="./hybrid-ss-min"; //For Unix
-//	string command2="./ct-energy"; //For Unix
-	string temp,temp2;
-	bool pass=0;
-
-	std::stringstream threadnum;
-	threadnum << tn;
-
-	seqfilename.append(threadnum.str()); 
-	ofstream seqfile(seqfilename.c_str());
-
-	seqfile << Tag; 
-	seqfile.close();
-	
-	command.append(threadnum.str());
-	command.append(Tstring.c_str());
-	command.append(seqfilename.c_str());
-	command.append(" >temp");
-	command.append(threadnum.str());
-//	cout << command << endl;
-	system(command.c_str());
-
-	command2.append(threadnum.str());
-	command2.append(" --suffix=DHD --verbose ");
-	command2.append(seqfilename);
-	command2.append(".ct >");
-	outfname.append(threadnum.str());
-	command2.append(outfname);
-
-	system(command2.c_str());
-
-
-	ctfilename.append(threadnum.str());
-	ctfilename.append(".ct");
-
-	ifstream ctfile(ctfilename.c_str());
-	ctfile >> temp >> temp >> temp >> dG;
-	ctfile.close();
-
-
-	ifstream outfile(outfname.c_str());
-	do{
-		getline(outfile,temp);
-	}while(temp.substr(0,6)!="Energy");
-	
-	size_t found1,found2;
-	
-	found1=temp.find("=");
-	found2=temp.find("\n",50);
-	temp2=temp.substr(found1+1,(found2-found1-1));
-	dH=atof(temp2.c_str());
-	
-	outfile.close();
-	
-	dS=(dH-dG)/(273.15+ SelfHybT);
-	Tm=dH/dS;
-	Tm-=273.15;
-
-//	tempf << Tag << '\t' << dG << '\t' << Tm << endl;
-//	tempf2 << '\t' << dG << '\t' << Tm << endl;
-	if(Tm<=(SelfHybT+(0.1*SelfHybT)))
-		pass=1;
-
-	return pass;
-}*/
-
-//Check complexity of the index with lzw compression. 
-//A low complexity seq will be compressed easily than a complex one.
-//The size of compressed seq will be then lower. The size difference between the 
-//compressed and uncompressed one will be higher.
-/*bool GenerateSequences::hybridise(string s1, int whichhandle, int tn,string Tstring){ 
-
-	string fn="hybseq", outfname, hyboutline,temp;
-	string command="hybrid-min ";
-	double dG,dH,dS,Tm;
-	bool pass=0;
-	
-	
-	std::stringstream ss;
-	ss << tn;
-
-	//command.append(ss.str());
-	command+= " " + Tstring;
-	
-	fn.append(ss.str());
-	ofstream seqfile(fn.c_str());
-	seqfile << s1; 
-	seqfile.close();
-
-	command.append(FileNames[whichhandle]);
-	command.append(" ");
-	command.append(fn.c_str());
-	
-	system(command.c_str()); // WINDOWS
-	
-	outfname.append(FileNames[whichhandle]);
-	outfname.append("-");
-	outfname.append(fn.c_str());
-	outfname.append(".ct");
-	
-	ifstream hybout(outfname.c_str());
-	getline(hybout,hyboutline);
-
-	size_t found1,found2;
-	found1=hyboutline.find("=");
-	found2=hyboutline.find("\t",found1+2);
-	temp=hyboutline.substr(found1+1,(found2-found1-1));
-	dG=atof(temp.c_str());
-		
-	found1=hyboutline.find("=",found2+1);
-	found2=hyboutline.find("\t",found1+2);
-	temp=hyboutline.substr(found1+1,(found2-found1));
-	dH=atof(temp.c_str());
-
-	hybout.close();
-
-	dS=(dH-dG)/(273.15+ Hyb_Temperature);
-	Tm=dH/(dS+R*log(0.00001/4));
-	Tm-=273.15;
-
-	if(Tm<=(Hyb_Temperature+(0.1*Hyb_Temperature)))
-		pass=1;
-	return pass;
-}*/
 
 string GenerateSequences::RevComp(string s){	
 	int z;
@@ -389,6 +177,7 @@ int GenerateSequences::CalculateEditDistance(string s1, string s2){
 
 	return d[len][len];
 }
+
 string GenerateSequences::AppendAdaptors(string &PutBarcode){
 
 	string s;
@@ -452,21 +241,29 @@ void* generateRandomChecked(void* args)
 	while (true){		
 	seq=mother->randomseq_setGC(GCcontent); //Generate Random Seq
 	seq_rc=mother->RevComp(seq);
-	ed= mother->CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
+	ed = mother->CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
+
 	if(ed>=EditDistanceThreshold_Self){
-		passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
+
+		passedrepeatcheck=mother->checkforruns(seq);// Check for repeats
+
 		lzwscore=lzw(seq); // Check for complexity
+
 		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
 			//CHECK ILLUMINA HANDLE VS BARCODE HYB
 			double dG, dS,dH,Tm;
+			bool reject = false;
 			for (int i=0; i< (int)IlluminaHandles.size(); ++i) {
 				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
 				dS=(dH-dG)/(273.15+ Hyb_Temperature);
 				Tm=dH/(dS+R*log(0.00001/4));
 				if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
-					continue;
+					reject = true;
+					break;
 				}
 			}
+			if (reject)
+				continue;
 			probe= GenerateSequences::AppendAdaptors(seq);
 			hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
 			dS=(dH-dG)/(273.15+ SelfHybT);

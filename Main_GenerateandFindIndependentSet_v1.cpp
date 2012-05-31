@@ -167,6 +167,7 @@ bool parseConfig(string path)
 int main(int argc, char *argv[]){
 	//Build parsing map
 	buildParserMap();
+	//TODO: don't leak the parser map
 
 	string configPath = "";
 	//Parse arguments
