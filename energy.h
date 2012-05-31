@@ -19,8 +19,11 @@
 #ifdef INTEGER
 # define isFinite(x) (x < INFINITY / 2)
 #else
+#ifdef _WIN32 || _WIN64
 #define finite(x) (_finite(x) && !_isnan(x) && x != 999999)
-//#define finite(x) (finite(x) && !isnan(x))
+#else
+#define finite(x) (finite(x) && !isnan(x))
+#endif
 #define isFinite(x) (finite(x))
 #endif
 
