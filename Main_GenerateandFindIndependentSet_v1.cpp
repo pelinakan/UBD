@@ -246,18 +246,18 @@ int main(int argc, char *argv[]){
 
 	FN.append(PutSeqFNS);
 	FN.append("_UniqueBarcodes.txt");
-	strcpy_s(UniqueBarcodeFNC,FN.c_str());
+	strcpy(UniqueBarcodeFNC,FN.c_str());
 
 	NW.PrintUniquePutBarcodes(UniqueBarcodeFNC);
 
 	FN1.append(PutSeqFNS);
 	FN1.append("_DegreeDistribution.txt");
-	strcpy_s(DDFNC,FN1.c_str());
+	strcpy(DDFNC,FN1.c_str());
 	
 
 	FN2.append(PutSeqFNS);
 	FN2.append("_EDDistribution.txt");
-	strcpy_s(EDDistFNC,FN2.c_str());
+	strcpy(EDDistFNC,FN2.c_str());
 
 	DegreeDist.NofBarcodes=NW.CommonSet.size();
 	DegreeDist.initialisevars();

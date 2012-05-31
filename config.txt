@@ -25,4 +25,4 @@ AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
 
 <restrictionSites>
 
-</restrictionSites> 
+</restrictionSites>
