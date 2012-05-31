@@ -430,6 +430,42 @@ typedef struct {
 	GenerateSequences* father;
 }params;
 
+bool addToPool(string seq, vector<string>& buffer)
+{
+	//Acquire lock
+	int poolSize = 0;
+	if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
+		if (buffer.size() > 50) {//Don't buffer more than 100 sequences
+			pthread_mutex_lock(&poolMutex);
+			if (die)
+				return false;
+			//Drop entire buffer to pool
+			for (int i=0; i< (int)buffer.size(); ++i) {
+				pool.push_back(buffer[i]);
+			}
+			poolSize = pool.size();
+			pthread_mutex_unlock(&poolMutex);
+			buffer.clear();
+		} else
+			buffer.push_back(seq);
+	} else {
+		if (die)
+			return false;
+		//Do stuff
+		pool.push_back(seq);
+		poolSize = pool.size();
+		pthread_mutex_unlock(&poolMutex);
+	}
+	//Is the pool completely full?
+	if (poolSize > 5000) {//Sleep around for some time... (:P)
+		do {
+			pthread_yield();
+			usleep(1000);
+		}while (pool.size() != 0);
+	}
+	return true;
+}
+
 void* generateRandomChecked(void* args)
 {
 	//Illumina handles
@@ -443,6 +479,7 @@ void* generateRandomChecked(void* args)
 	long int random_rejects = 0;
 	string seq,seq_rc,probe;
 	int lzwscore,ed;
+	double dG, dS,dH,Tm;
 	bool passedrepeatcheck;
 	params *p = (params*)args;
 	int GCcontent = p->GCcontent;
@@ -450,69 +487,47 @@ void* generateRandomChecked(void* args)
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
 	while (true){		
-	seq=mother->randomseq_setGC(GCcontent); //Generate Random Seq
-	seq_rc=mother->RevComp(seq);
-	ed= mother->CalculateEditDistance(seq,seq_rc); //Check ED between seq and its reverse complement
-	if(ed>=EditDistanceThreshold_Self){
-		passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
-		lzwscore=lzw(seq); // Check for complexity
-		if(lzwscore<=LenDiffThreshold && passedrepeatcheck){
+
+		seq = mother->randomseq_setGC(GCcontent); //Generate Random Seq
+		probe= GenerateSequences::AppendAdaptors(seq);
+		//Check self-hybridization
+		hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
+		dS=(dH-dG)/(273.15+ SelfHybT);
+		Tm=(dH/dS)-273.15;
+		if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 			//CHECK ILLUMINA HANDLE VS BARCODE HYB
-			double dG, dS,dH,Tm;
-			for (int i=0; i< (int)IlluminaHandles.size(); ++i) {
+			bool failedHandleHyb = false;
+			for (int i=0; i < (int)IlluminaHandles.size(); ++i) {
 				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
 				dS=(dH-dG)/(273.15+ Hyb_Temperature);
 				Tm=dH/(dS+R*log(0.00001/4));
+				Tm-=273.15;
 				if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
-					continue;
+					failedHandleHyb = true;
+					break;
 				}
 			}
-			probe= GenerateSequences::AppendAdaptors(seq);
-			hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
-			dS=(dH-dG)/(273.15+ SelfHybT);
-			Tm=(dH/dS)-273.15;
-			if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
-				//Acquire lock
-			  int poolSize = 0;
-			  	if (pthread_mutex_trylock(&poolMutex) != 0) {//Mutex held by someone else
-					if (buffer.size() > 50) {//Don't buffer more than 100 sequences
-					  pthread_mutex_lock(&poolMutex);
-					  if (die)
-					    break;
-					  //Drop entire buffer to pool
-					  for (int i=0; i< (int)buffer.size(); ++i) {
-					      pool.push_back(buffer[i]);
-					  }
-					  poolSize = pool.size();
-					  pthread_mutex_unlock(&poolMutex);
-					  buffer.clear();
-					} else 
-					  buffer.push_back(seq);
-				} else {
-				  if (die)
-				    break;
-				  //Do stuff
-				  pool.push_back(seq);
-				  poolSize = pool.size();
-				  pthread_mutex_unlock(&poolMutex);
-				}
-				//Is the pool completely full?
-				if (poolSize > 5000) {//Sleep around for some time... (:P)
-				  do {
-				    //pthread_yield();
-				    //usleep(1000);
-				  }while (pool.size() != 0);
+			if (!failedHandleHyb) {
+				//Check for repeats
+				passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
+				if (passedrepeatcheck) {
+					//Check for complexity
+					lzwscore=lzw(seq);
+					if(lzwscore<=LenDiffThreshold) {
+						//Check for edit distance to reverse complement
+						seq_rc = mother->RevComp(seq);
+						ed = mother->CalculateEditDistance(seq,seq_rc);
+						if(ed>=EditDistanceThreshold_Self){//Passed everything
+							if (!addToPool(seq,buffer))//Will return false if job is over.
+								break;
+						}
+					}
 				}
 			}
-		} else {
-			++random_rejects;	
 		}
-	}
-
 	}
 	delete hybMin;
 	delete mother;
-	fprintf(stdout,"%ld\n",random_rejects);
 	return NULL;
 }
 
@@ -604,3 +619,75 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
 	
 
 }*/
+
+/*
+ * 	//---------Test vars----------
+	long totalGenerated = 0;
+	long rejectedByEDToReverseComplement = 0;
+	long rejectedByRuns = 0;
+	long rejectedByLZW = 0;
+	long rejectedByHandleHybridization = 0;
+	long rejectedBySelfHybridization = 0;
+	FILE *test = fopen("bayes.out","w");
+	//----------------------------
+	 *
+	 * fprintf(stdout,"%ld\n",random_rejects);
+	FILE *c = fopen("distr.out","w");
+	fprintf(c,"%ld\n%ld\n%ld\n%ld\n%ld\n%ld\n",totalGenerated, rejectedByEDToReverseComplement, rejectedByRuns,
+			rejectedByLZW, rejectedByHandleHybridization, rejectedBySelfHybridization);
+	fclose(c);
+	fclose(test);
+ */
+
+/*
+ * if (ed < EditDistanceThreshold_Self) {
+		fprintf(test,"1\t");
+		++rejectedByEDToReverseComplement;
+	} else {
+		fprintf(test,"0\t");
+	}
+	passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
+	if (!passedrepeatcheck) {
+		fprintf(test,"1\t");
+		++rejectedByRuns;
+	} else {
+		fprintf(test,"0\t");
+	}
+	lzwscore=lzw(seq); // Check for complexity
+	if (lzwscore > LenDiffThreshold) {
+		fprintf(test,"1\t");
+		++rejectedByLZW;
+	} else {
+		fprintf(test,"0\t");
+	}
+	//CHECK ILLUMINA HANDLE VS BARCODE HYB
+	double dG, dS,dH,Tm;
+	bool rejected = false;
+	for (int i=0; i < IlluminaHandles.size(); ++i) {
+		hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
+		dS=(dH-dG)/(273.15+ Hyb_Temperature);
+		Tm=dH/(dS+R*log(0.00001/4));
+		Tm-=273.15;
+		if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
+			rejected = true;
+			++rejectedByHandleHybridization;
+			break;
+		}
+	}
+	if (rejected) {
+		fprintf(test,"1\t");
+	} else {
+		fprintf(test,"0\t");
+	}
+	probe= GenerateSequences::AppendAdaptors(seq);
+	hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
+	dS=(dH-dG)/(273.15+ SelfHybT);
+	Tm=(dH/dS)-273.15;
+	if(Tm>(SelfHybT+(0.1*SelfHybT))) {
+		fprintf(test,"1\n");
+		++rejectedBySelfHybridization;
+	} else {
+		fprintf(test,"0\n");
+	}
+ */
+
