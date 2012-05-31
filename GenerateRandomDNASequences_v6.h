@@ -248,8 +248,8 @@ bool addToPool(string seq, vector<string>& buffer)
 	//Is the pool completely full?
 	if (poolSize > 5000) {//Sleep around for some time... (:P)
 		do {
-			pthread_yield();
-			usleep(1000);
+			//pthread_yield();
+			//usleep(1000);
 		}while (pool.size() != 0);
 	}
 	return true;
