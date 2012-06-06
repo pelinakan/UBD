@@ -15,18 +15,10 @@ public:
 	unsigned long long FindMax(void);
 	void DegreeDist(char*, char * /*,vector <string>&*/);
 	string RevComp(string);
-private:
-	unsigned int** d;
+
 };
 
 DegreeDistribution::DegreeDistribution(){
-	d = new unsigned int*[SeqLen+1];
-	for (int i=0;i<=SeqLen;++i) {
-		d[i] = new unsigned int[SeqLen+1];
-	}
-	d[0][0] = 0;
-	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
-	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
 }
 
 void DegreeDistribution::initialisevars(){
@@ -58,13 +50,15 @@ int DegreeDistribution::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
 	string s2_revcom;
-	//unsigned int d[SeqLen+1][SeqLen+1];
+	unsigned int **d = new unsigned int*[SeqLen+1];
+	for (int i=0;i<=SeqLen;++i) {
+		d[i] = new unsigned int[SeqLen+1];
+	}
+	d[0][0] = 0;
+	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
+	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
 	const int len=SeqLen;
 
-	/*d[0][0] = 0;
-	
-	for(x = 1; x <= len; ++x) d[x][0] = x;
-	for(x = 1; x <= len; ++x) d[0][x] = x;*/
 	
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
@@ -72,17 +66,19 @@ int DegreeDistribution::CalculateEditDistance(string s1, string s2){
 	
 	if(d[len][len] > EditDistanceThreshold){
 		s2_revcom=RevComp(s2);
-		d[0][0] = 0;
-
-		for(x = 1; x <= len; ++x) d[x][0] = x;
-		for(x = 1; x <= len; ++x) d[0][x] = x;
 
 		for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
 				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + (s1[x - 1] == s2_revcom[y - 1] ? 0 : 1) );
 	}
 
-	return d[len][len];
+	int ret = d[len][len];
+	for (int i=0;i<=SeqLen;++i) {
+		delete[] d[i];
+	}
+	delete[] d;
+
+	return ret;
 }
 
 void DegreeDistribution::GenerateNetwork(vector <string> &Barcodes){
