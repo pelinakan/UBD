@@ -61,6 +61,28 @@ HybridMin::HybridMin(void)
 		loadTstacke(tstackeEnergies, tstackeEnthalpies, NA, saltCorrection);
 	loadMisc(miscEnergies, miscEnthalpies, NA);
 
+	//Do other initializations
+	tRatio = (t + 273.15) / 310.15;
+	RT = R * (t + 273.15);
+
+	if (!suffix && (!g_oneTemp || g_firstSeq))
+	{
+	    combineStack(stackEnergies, stackEnthalpies, tRatio, g_stack);
+	    if (!g_nodangle)
+			combineDangle(dangleEnergies3, dangleEnergies5, dangleEnthalpies3, dangleEnthalpies5, tRatio, g_dangle3, g_dangle5);
+	    combineLoop(interiorLoopEnergies, bulgeLoopEnergies, hairpinLoopEnergies, interiorLoopEnthalpies, bulgeLoopEnthalpies, hairpinLoopEnthalpies, tRatio, g_interiorLoop, g_bulgeLoop, g_hairpinLoop);
+	    combineSint2(sint2Energies, sint2Enthalpies, tRatio, g_sint2);
+	    combineAsint1x2(asint1x2Energies, asint1x2Enthalpies, tRatio, g_asint1x2);
+	    combineSint4(sint4Energies, sint4Enthalpies, tRatio, g_sint4);
+	    combineTstack(tstackiEnergies, tstackiEnthalpies, tRatio, g_tstacki);
+	    combineTstack(tstacki23Energies, tstacki23Enthalpies, tRatio, g_tstacki23);
+	    if (!g_nodangle)
+			combineTstack2(tstackeEnergies, tstackeEnthalpies, tRatio, g_tstacke);
+	    combineMisc(miscEnergies, miscEnthalpies, tRatio, g_misc);
+	}
+	makeAUPenalty(g_misc, g_aup, 0);
+	makeAUPenaltyH(miscEnthalpies, g_aupH, 0);
+
 }
  
 
@@ -93,28 +115,8 @@ double HybridMin::compute(double& dG, double& dH, const char* sequence1, const c
       if (g_mfoldMax)
 		rprime = new double[g_len1 * g_len2];
 
-      for (t = tMin; t <= tMax; t += tInc)
+    for (t = tMin; t <= tMax; t += tInc)
 	{
-	  tRatio = (t + 273.15) / 310.15;
-	  RT = R * (t + 273.15);
-
-	  if (!suffix && (!g_oneTemp || g_firstSeq))
-	    {
-	      combineStack(stackEnergies, stackEnthalpies, tRatio, g_stack);
-	      if (!g_nodangle)
-		combineDangle(dangleEnergies3, dangleEnergies5, dangleEnthalpies3, dangleEnthalpies5, tRatio, g_dangle3, g_dangle5);
-	      combineLoop(interiorLoopEnergies, bulgeLoopEnergies, hairpinLoopEnergies, interiorLoopEnthalpies, bulgeLoopEnthalpies, hairpinLoopEnthalpies, tRatio, g_interiorLoop, g_bulgeLoop, g_hairpinLoop);
-	      combineSint2(sint2Energies, sint2Enthalpies, tRatio, g_sint2);
-	      combineAsint1x2(asint1x2Energies, asint1x2Enthalpies, tRatio, g_asint1x2);
-	      combineSint4(sint4Energies, sint4Enthalpies, tRatio, g_sint4);
-	      combineTstack(tstackiEnergies, tstackiEnthalpies, tRatio, g_tstacki);
-	      combineTstack(tstacki23Energies, tstacki23Enthalpies, tRatio, g_tstacki23);
-	      if (!g_nodangle)
-		combineTstack2(tstackeEnergies, tstackeEnthalpies, tRatio, g_tstacke);
-	      combineMisc(miscEnergies, miscEnthalpies, tRatio, g_misc);
-	    }
-	  makeAUPenalty(g_misc, g_aup, 0);
-	  makeAUPenaltyH(miscEnthalpies, g_aupH, 0);
 
 	  g_homodimer = (g_len1 != g_len2 || util::seqcmp(g_seq1, g_seq2, g_len1 + 2)) ? 0.0 : floor(RT * log(2.0) * PRECISION + 0.5);
 
@@ -203,11 +205,8 @@ double HybridMin::compute(double& dG, double& dH, const char* sequence1, const c
 		  else
 		    makePairList(cutoff, pnum1, pnum2);
 
-		  //writePnum(pnum1, pnum2, t);
 		  free(pnum1);
 		  free(pnum2);
-
-		  //writeBoxPlot(t);
 
 		  found = new char*[g_len1];
 		  for (i = 1; i <= g_len1; ++i)
@@ -309,18 +308,19 @@ double HybridMin::compute(double& dG, double& dH, const char* sequence1, const c
 			    }
 			}
 		    }
-			//fprintf(stdout, "0\tdG = %g\tdH = %g\n", , enthalpy);
+			
 			dG = (double) (g_misc[5] + Eleft + g_homodimer) / PRECISION;
 			dH = enthalpy;
+
 		   
 		}
 
-	      free(bp1);
-	      free(bp2);
-	      free(upst1);
-	      free(upst2);
-	      free(dnst1);
-	      free(dnst2);
+	      delete[] bp1;
+	      delete[] bp2;
+	      delete[] upst1;
+	      delete[] upst2;
+	      delete[] dnst1;
+	      delete[] dnst2;
 	    }
 	  else if (g_quiet)
 	    {
@@ -454,7 +454,7 @@ void HybridMin::prefilter()
 	  }
       free(in[i - 1]);
     }
-  free(in);
+  delete[] in;
 }
 
 void HybridMin::fillMatrixL(double RT)
@@ -1285,11 +1285,6 @@ int HybridMin::equal(ENERGY a, ENERGY b)
   /* 2004-06-25: replaced relative difference with line below
      so that very small numbers compare equal to 0 */
   return fabs(a - b) < 1e-5;
-
-  if (a == 0 && b == 0)
-    return 1;
-
-  return fabs((a - b) / (a + b)) < 0.00001;
 }
 
 void HybridMin::push(struct stackNode** stack, int i, int j)

@@ -36,7 +36,6 @@ extern const ENERGY INFINITY;
 extern const char BASES[5];
 extern const char BASE_PAIRS[6][4];
 
-
 double ion(int NA, int polymer, double naConc, double mgConc);
 
 void loadStack(double stackEnergies[4][4][4][4], double stackEnthalpies[5][5][5][5], int NA, double saltCorrection);

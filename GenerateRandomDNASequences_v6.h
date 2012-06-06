@@ -259,15 +259,7 @@ bool addToPool(string seq, vector<string>& buffer)
 
 void* generateRandomChecked(void* args)
 {
-	//Illumina handles
-	//TODO - sholdn't these be read from somewhere?
-	vector<string> IlluminaHandles;
-	IlluminaHandles.push_back("ACACTCTTTCCCTACACGACGCTCTTCCGATCT"); //IlluminaAHandle
-	IlluminaHandles.push_back("AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"); //IlluminaAHandleReverseComplement
-	IlluminaHandles.push_back("GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT"); //IlluminaBHandle
-	IlluminaHandles.push_back("AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"); //IlluminaBHandleReverseComplement
-	
-	long int random_rejects = 0;
+
 	string seq,seq_rc,probe;
 	int lzwscore,ed;
 	double dG, dS,dH,Tm;
@@ -287,8 +279,8 @@ void* generateRandomChecked(void* args)
 		if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 			//CHECK ILLUMINA HANDLE VS BARCODE HYB
 			bool failedHandleHyb = false;
-			for (int i=0; i < (int)IlluminaHandles.size(); ++i) {
-				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),IlluminaHandles[i].c_str(),50);
+			for (int i=0; i < (int)AdaptorList.size(); ++i) {
+				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str(),50);
 				dS=(dH-dG)/(273.15+ Hyb_Temperature);
 				Tm=dH/(dS+R*log(0.00001/4));
 				Tm-=273.15;
@@ -307,9 +299,19 @@ void* generateRandomChecked(void* args)
 						//Check for edit distance to reverse complement
 						seq_rc = mother->RevComp(seq);
 						ed = mother->CalculateEditDistance(seq,seq_rc);
-						if(ed>=EditDistanceThreshold_Self){//Passed everything
-							if (!addToPool(seq,buffer))//Will return false if job is over.
-								break;
+						if(ed>=EditDistanceThreshold_Self){
+							//Check if it contains restriction sites from given list.
+							bool failedRestrictionSites = false;
+							for (int i=0; i<(int)RestrictionList.size();++i) {
+								if (seq.find(RestrictionList[i]) != string::npos) {//Found overlap with restriction site
+									failedRestrictionSites = true;
+									break;
+								}
+							}
+							if (!failedRestrictionSites) {//Passed everything
+								if (!addToPool(seq,buffer))//Will return false if job is over.
+									break;
+							}
 						}
 					}
 				}

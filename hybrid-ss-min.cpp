@@ -214,32 +214,12 @@ for (t = tMin; t <= tMax; t += tInc)
 	for (k = 0; k < g_len; ++k)
 		bp[k] = upst[k] = dnst[k] = 0;
 
-	if (g_circular)
-	{
-		if (g_noisolate && isFinite(mfe))
-		{
-			traceback_noI(bestI, bestJ, 1, bp, upst, dnst);
-			setStack(bestI - 1, bestJ + 1, upst, dnst);
-			traceback_noI(bestJ + 1, bestI - 1 + g_len / 2, 1, bp, upst, dnst);
-		}
-		else if (isFinite(mfe))
-		{
-			traceback(bestI, bestJ, 1, bp, upst, dnst);
-			traceback(bestJ, bestI + g_len / 2, 1, bp, upst, dnst);
-		}
-			circularize(bp, upst, dnst, bestI);
-			writeStructureC(bp, upst, dnst, t, mfe);
-			if (g_firstSeq)
-			writePlotExt(bp, t, mfe);
-	}
-	else
-	{
-		if (g_noisolate && isFinite(Q5(g_len)))
-			traceback_noI(0, 0, 0, bp, upst, dnst);
-		else if (isFinite(Q5(g_len)))
-			traceback(0, 0, 0, bp, upst, dnst);
-	}
 	
+	if (g_noisolate && isFinite(Q5(g_len)))
+		traceback_noI(0, 0, 0, bp, upst, dnst);
+	else if (isFinite(Q5(g_len)))
+		traceback(0, 0, 0, bp, upst, dnst);
+		
 }
   
 	gE = (double) Q5(g_len) / PRECISION;
@@ -423,7 +403,6 @@ void HybridSSMin::initializeMatrices()
 void HybridSSMin::fillMatrices1()
 {
   int i, j, k;
-  FILE* file;
 
   /* start at top left, fill each column bottom->top
      when Q' is +infinity, don't consider it */
@@ -499,34 +478,6 @@ void HybridSSMin::fillMatrices1()
 		}
 	    }
       }
-
-  /*if (g_debug)
-    {
-      file = fopen("Qprime", "wt");
-      for (i = 1; i <= g_len; ++i)
-	{
-	  for (j = 1; j <= g_len; ++j)
-	    fprintf(file, "%f\t", (double) Qprime(i, j) / PRECISION);
-	  fputs("\n", file);
-	}
-      fclose(file);
-      file = fopen("Q", "wt");
-      for (i = 1; i <= g_len; ++i)
-	{
-	  for (j = 1; j <= g_len; ++j)
-	    fprintf(file, "%f\t", (double) Q(i, j) / PRECISION);
-	  fputs("\n", file);
-	}
-      fclose(file);
-      file = fopen("QM", "wt");
-      for (i = 1; i <= g_len; ++i)
-	{
-	  for (j = 1; j <= g_len; ++j)
-	    fprintf(file, "%f\t", (double) QM(i, j) / PRECISION);
-	  fputs("\n", file);
-	}
-      fclose(file);
-    }*/
 }
 
 void HybridSSMin::fillMatrices2()
@@ -1739,126 +1690,6 @@ int HybridSSMin::unique(int* bp, char** found)
   return unique_;
 }
 
-void HybridSSMin::writeStructure(int* bp, int* upst, int* dnst, double t, ENERGY E)
-{
-  int i;
-  char* buffer;
-  FILE* file;
-
-  if (g_oneTemp)
-    {
-      buffer = (char*) xmalloc(strlen(g_prefix) + 4);
-      sprintf(buffer, "%s.ct", g_prefix);
-    }
-  else
-    {
-      buffer = (char*) xmalloc(strlen(g_prefix) + 15);
-      sprintf(buffer, "%s.%g.ct", g_prefix, t);
-    }
-  if (!(file = fopen(buffer, g_firstSeq ? "wt" : "at")))
-    {
-      perror(buffer);
-      exit(EXIT_FAILURE);
-    }
-  free(buffer);
-
-  if (!isFinite(E))
-    fprintf(file, "0\tdG = %g\t%s\n", (double) E / PRECISION, g_name);
-  else
-    {
-      fprintf(file, "%d\tdG = %g\t%s\n", g_len, (double) E / PRECISION, g_name);
-      for (i = 1; i < g_len; ++i)
-	fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", i, g_string[i - 1], i - 1, i + 1, bp[i - 1], i, upst[i - 1], dnst[i - 1]);
-      fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", g_len, g_string[g_len - 1], g_len - 1, 0, bp[g_len - 1], g_len, upst[g_len - 1], 0);
-    }
-
-  fclose(file);
-}
-
-void HybridSSMin::writeStructureC(int* bp, int* upst, int* dnst, double t, ENERGY E)
-{
-  int i, n;
-  char* buffer;
-  FILE* file;
-
-  if (g_oneTemp)
-    {
-      buffer = (char*)  xmalloc(strlen(g_prefix) + 4);
-      sprintf(buffer, "%s.ct", g_prefix);
-    }
-  else
-    {
-      buffer = (char*) xmalloc(strlen(g_prefix) + 15);
-      sprintf(buffer, "%s.%g.ct", g_prefix, t);
-    }
-  if (!(file = fopen(buffer, g_firstSeq ? "wt" : "at")))
-    {
-      perror(buffer);
-      exit(EXIT_FAILURE);
-    }
-  free(buffer);
-
-  n = g_len / 2;
-
-  if (!isFinite(E))
-    fprintf(file, "0\tdG = %g\t%s\n", (double) E / PRECISION, g_name);
-  else
-    {
-      fprintf(file, "%d\tdG = %g\t%s\n", n, (double) E / PRECISION, g_name);
-      fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", 1, g_string[0], n, 2, bp[0], 1, upst[0], dnst[0]);
-      for (i = 2; i < n; ++i)
-	fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", i, g_string[i - 1], i - 1, i + 1, bp[i - 1], i, upst[i - 1], dnst[i - 1]);
-      fprintf(file, "%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", n, g_string[n - 1], n - 1, 1, bp[n - 1], n, upst[n - 1], dnst[n - 1]);
-    }
-
-  fclose(file);
-}
-
-void HybridSSMin::writePlotExt(int* bp, double t, ENERGY E)
-{
-  int i, n;
-  char* buffer;
-  FILE* file;
-
-  n = g_circular ? g_len / 2 : g_len;
-
-  buffer = (char*)  xmalloc(strlen(g_prefix) + 17);
-  sprintf(buffer, "%s.%g.plot", g_prefix, t);
-  if (!(file = fopen(buffer, "wt")))
-    {
-      perror(buffer);
-      exit(EXIT_FAILURE);
-    }
-  fprintf(file, "i\tj\tP(i, j)\t\t-RT * ln(Z) = %g\n", (double) E / PRECISION);
-
-  for (i = 1; i <= n; ++i)
-    if (bp[i - 1] > i)
-      fprintf(file, "%d\t%d\t1\n", i, bp[i - 1]);
- 
-  fclose(file);
-
-  strcpy(buffer + strlen(buffer) - 4, "ext");
-  if (!(file = fopen(buffer, "wt")))
-    {
-      perror(buffer);
-      exit(EXIT_FAILURE);
-    }
-  free(buffer);
-
-  fputs("i\tP(i is SS)\tP(i is SS and i+1 is SS)\n", file);
-
-  for (i = 1; i < n; ++i)
-    if (!bp[i - 1] && !bp[i])
-      fprintf(file, "%d\t1\t1\n", i);
-    else if (!bp[i - 1])
-      fprintf(file, "%d\t1\t0\n", i);
-    else
-      fprintf(file, "%d\t0\t0\n", i);
-  fprintf(file, "%d\t%d\n", n, bp[n - 1] ? 0 : 1);
-
-  fclose(file);
-}
-
 void HybridSSMin::makePairList(ENERGY cutoff, int* pnum)
 {
   int d, i, j, length, n;
@@ -1951,35 +1782,6 @@ void HybridSSMin::makePairList_noI(ENERGY cutoff, int* pnum)
 	}
     }
 
-}
-
-void HybridSSMin::writePnum(int* pnum, double t)
-{
-  char* buffer;
-  int i;
-  FILE* file;
-
-  if (g_oneTemp)
-    {
-      buffer = (char*) xmalloc(strlen(g_prefix) + 5);
-      sprintf(buffer, "%s.ann", g_prefix);
-    }
-  else
-    {
-      buffer = (char*) xmalloc(strlen(g_prefix) + 16);
-      sprintf(buffer, "%s.%g.ann", g_prefix, t);
-    }
-  if (!(file = fopen(buffer, "wt")))
-    {
-      perror(buffer);
-      exit(EXIT_FAILURE);
-    }
-  free(buffer);
-
-  for (i = 1; i <= (g_circular ? g_len / 2 : g_len); ++i)
-    fprintf(file, "%d\t%d\n", i, pnum[i - 1]);
-
-  fclose(file);
 }
 
 ENERGY HybridSSMin::Q5_1(int i)
@@ -2422,11 +2224,6 @@ int HybridSSMin::equal(ENERGY a, ENERGY b)
   /* 2004-06-25: replaced relative difference with line below
      so that very small numbers compare equal to 0 */
   return fabs(a - b) < 1e-5;
-
-  if (a == 0 && b == 0)
-    return 1;
-
-  return fabs((a - b) / (a + b)) < 0.00001;
 }
 
 void HybridSSMin::push(struct stackNode** stack, int i, int j, int matrix)

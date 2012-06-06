@@ -8,6 +8,7 @@ public:
 	~HybridMin(void);
 
 	double compute(double& dG, double& dH, const char* sequence1, const char* sequence2, double temperature);
+
 private:
 #define Lprime(i, j) lprime[g_len2 * (i) - (j)]
 #define Rprime(i, j) rprime[g_len1 * (j) - (i)]

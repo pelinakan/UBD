@@ -92,7 +92,7 @@ FILE* openFile(char* name)
 	  perror(name);
 	  exit(EXIT_FAILURE);
 	}
-      free(buffer);
+      delete[] buffer;
     }
 
   return file;
