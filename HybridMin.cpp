@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-HybridMin::HybridMin(void)
+HybridMin::HybridMin(double HybTemperature)
 {
 	lprime = rprime = NULL;
 	#if ENABLE_FORCE
@@ -17,9 +17,6 @@ HybridMin::HybridMin(void)
 	g_allPairs = 0;
 	g_nodangle = 0;
 	g_maxLoop = 30;
-	tMin = 37;
-	tInc = 1;
-	tMax = 37;
 	suffix = NULL;
 	g_prefix = NULL;
 	naConc = 1;
@@ -34,11 +31,9 @@ HybridMin::HybridMin(void)
 	g_mfoldW = 0;
 	g_quiet = 0;
 	g_zip = 0;
-	constraints = 0;
-	constraintsFile = g_bpFile = NULL;
 	bestI = bestJ = 0;
 
-	g_oneTemp = (tMin + tInc > tMax) ? 1 : 0;
+	g_oneTemp = 1;
   
 	if (g_maxLoop < 0)
 		g_maxLoop = 999999999;
@@ -61,6 +56,7 @@ HybridMin::HybridMin(void)
 		loadTstacke(tstackeEnergies, tstackeEnthalpies, NA, saltCorrection);
 	loadMisc(miscEnergies, miscEnthalpies, NA);
 
+	t = HybTemperature;
 	//Do other initializations
 	tRatio = (t + 273.15) / 310.15;
 	RT = R * (t + 273.15);
@@ -91,10 +87,8 @@ HybridMin::~HybridMin(void)
 {
 }
 
-double HybridMin::compute(double& dG, double& dH, const char* sequence1, const char* sequence2, double temperature)
+double HybridMin::compute(double& dG, double& dH, const char* sequence1, const char* sequence2)
 {
-	tMin = temperature;
-	tMax = temperature;
 
 	g_len1 = strlen(sequence1);
 	g_len2 = strlen(sequence2);
@@ -114,9 +108,6 @@ double HybridMin::compute(double& dG, double& dH, const char* sequence1, const c
       lprime = new double[g_len1 * g_len2];
       if (g_mfoldMax)
 		rprime = new double[g_len1 * g_len2];
-
-    for (t = tMin; t <= tMax; t += tInc)
-	{
 
 	  g_homodimer = (g_len1 != g_len2 || util::seqcmp(g_seq1, g_seq2, g_len1 + 2)) ? 0.0 : floor(RT * log(2.0) * PRECISION + 0.5);
 
@@ -327,7 +318,6 @@ double HybridMin::compute(double& dG, double& dH, const char* sequence1, const c
 	      puts("");
 	      fflush(stdout);
 	    }
-	}
 
 	delete[] g_string1;
 	delete[] g_string2;

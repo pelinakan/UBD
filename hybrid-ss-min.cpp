@@ -13,18 +13,19 @@ double hairpinLoopEnthalpies[30] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 double multiEnergies[3]={4.5,0.2,0.2};
 double multiEnthalpies[3]={0,0,0};
 double miscEnergies[13]={0.4,0.3,0.2,0.1,3.0,1.96,0.05,0.0,0.0,0.0,0.0,0.0,1.07857764};
-double miscEnthalpies[13]={0.0,0.0,0.0,0.0,0.0,0.2 ,2.2 ,0.0,0.0,0.0,0.0,0.0,0.0};
+double miscEnthalpies[13]={0.0,0.0,0.0,0.0,0.0,0.2,2.2,0.0,0.0,0.0,0.0,0.0,0.0};
 /**
  * @brief Read all the stuff we need and get that done with!
  */
 
-HybridSSMin::HybridSSMin()
+HybridSSMin::HybridSSMin(double SelfHybT, double HybTemperature)
 {
 
 	//Initialize ctEn computer
 	enComputer = new CtEnergy();
-	hybridComputer = new HybridMin();
+	hybridComputer = new HybridMin(HybTemperature);
 
+	selfHybTemp = SelfHybT;
 	char gotSeq;
   int count, i, j;
   double t, tRatio;
@@ -52,7 +53,6 @@ HybridSSMin::HybridSSMin()
   polymer = 0;
   g_prefilter1 = g_prefilter2 = 2;
   prohibitList = forceList = NULL;
-  //g_mfoldMax = 0;
   g_mfoldP = 0;
   g_mfoldW = 0;
   g_maxBP = 0;
@@ -104,7 +104,8 @@ HybridSSMin::HybridSSMin()
 	//TODO: Print out that this doesn't work for RNA!!!!!!!!!!!
     //loadMulti(multiEnergies, multiEnthalpies, NA);
     //loadMisc(miscEnergies, miscEnthalpies, NA);
-	t=50.0;
+	
+	t=selfHybTemp;
 	tRatio = (t + 273.15) / 310.15;
 	RT = R * (t + 273.15);
 	combineStack(stackEnergies, stackEnthalpies, tRatio, g_stack);
@@ -137,12 +138,12 @@ HybridSSMin::HybridSSMin()
 
 }
 
-void HybridSSMin::computeTwoProbeHybridization(double& dG, double& dH, const char* seq1, const char* seq2, double temp)
+void HybridSSMin::computeTwoProbeHybridization(double& dG, double& dH, const char* seq1, const char* seq2)
 {
-	hybridComputer->compute(dG,dH,seq1,seq2,temp);
+	hybridComputer->compute(dG,dH,seq1,seq2);
 }
 
-double HybridSSMin::computeGibsonFreeEnergy(double& gE, double& ctE, const char* sequence, double tMin=37.0, double tMax=37.0)
+double HybridSSMin::computeGibsonFreeEnergy(double& gE, double& ctE, const char* sequence)
 {
 
   int i,skipTraceback;
@@ -180,10 +181,9 @@ double HybridSSMin::computeGibsonFreeEnergy(double& gE, double& ctE, const char*
       g_ssok = xrealloc(g_ssok, (g_len + 2) * (g_len + 2));
 #endif
 
-int *bp, *upst, *dnst;
-
-for (t = tMin; t <= tMax; t += tInc)
-{
+	int *bp, *upst, *dnst;
+	
+	t = selfHybTemp;
 	int bestI, bestJ;
 	ENERGY mfe;
 	
@@ -220,7 +220,7 @@ for (t = tMin; t <= tMax; t += tInc)
 	else if (isFinite(Q5(g_len)))
 		traceback(0, 0, 0, bp, upst, dnst);
 		
-}
+
   
 	gE = (double) Q5(g_len) / PRECISION;
 	ctE = enComputer->compute(this,bp,upst,dnst);

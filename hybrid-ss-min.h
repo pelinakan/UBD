@@ -67,10 +67,10 @@ struct stack_node
 	struct stack_node* next;
 };
 
-HybridSSMin();
+HybridSSMin(double SelfHybT, double);
 
-double computeGibsonFreeEnergy(double&, double&, const char*, double, double);
-void computeTwoProbeHybridization(double&, double&, const char*, const char*, double);
+double computeGibsonFreeEnergy(double&, double&, const char*);
+void computeTwoProbeHybridization(double&, double&, const char*, const char*);
 void initializeMatrices();
 void fillMatrices1();
 void fillMatrices2();
@@ -209,4 +209,5 @@ private:
 
 	CtEnergy* enComputer;
 	HybridMin* hybridComputer;
+	double selfHybTemp;
 };

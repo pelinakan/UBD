@@ -266,21 +266,21 @@ void* generateRandomChecked(void* args)
 	bool passedrepeatcheck;
 	params *p = (params*)args;
 	int GCcontent = p->GCcontent;
-	HybridSSMin* hybMin=new HybridSSMin();
+	HybridSSMin* hybMin=new HybridSSMin(SelfHybT,Hyb_Temperature);
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
 	while (true){		
 		seq = mother->randomseq_setGC(GCcontent); //Generate Random Seq
 		probe= GenerateSequences::AppendAdaptors(seq);
 		//Check self-hybridization
-		hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str(),SelfHybT,SelfHybT);
+		hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str());
 		dS=(dH-dG)/(273.15+ SelfHybT);
 		Tm=(dH/dS)-273.15;
 		if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 			//CHECK ILLUMINA HANDLE VS BARCODE HYB
 			bool failedHandleHyb = false;
 			for (int i=0; i < (int)AdaptorList.size(); ++i) {
-				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str(),50);
+				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str());
 				dS=(dH-dG)/(273.15+ Hyb_Temperature);
 				Tm=dH/(dS+R*log(0.00001/4));
 				Tm-=273.15;

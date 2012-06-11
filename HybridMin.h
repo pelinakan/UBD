@@ -4,10 +4,10 @@
 class HybridMin
 {
 public:
-	HybridMin(void);
+	HybridMin(double);
 	~HybridMin(void);
 
-	double compute(double& dG, double& dH, const char* sequence1, const char* sequence2, double temperature);
+	double compute(double& dG, double& dH, const char* sequence1, const char* sequence2);
 
 private:
 #define Lprime(i, j) lprime[g_len2 * (i) - (j)]
@@ -135,13 +135,11 @@ ENERGY g_aup[5][5];
 double g_aupH[5][5];
 
 int NA, polymer, skipTraceback, noIsolate, constraints;
-  char* constraintsFile;
-  double tMin, tInc, tMax;
   double naConc, mgConc;
   double saltCorrection;
 
 
-  ENERGY Eleft;/*, Eright; */
+  ENERGY Eleft;
 
   char gotSeqs;
   int count, i, j;
@@ -149,6 +147,6 @@ int NA, polymer, skipTraceback, noIsolate, constraints;
   double t, tRatio, RT;
   char *buffer, *suffix;
   struct constraintListNode* newTop;
-
+	
 };
 
