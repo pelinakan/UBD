@@ -8,7 +8,7 @@ public:
 	unsigned long int NofBarcodes;
 	DegreeDistribution();
 	vector<bool> Connected; // Connected[x] : If pair x is connected or not.
-	void initialisevars();
+	bool initialisevars();
 	int CalculateEditDistance(string, string);
 	void GenerateNetwork(vector <string>&);
 	unsigned long long FindMin(void);
@@ -21,15 +21,23 @@ public:
 DegreeDistribution::DegreeDistribution(){
 }
 
-void DegreeDistribution::initialisevars(){
+bool DegreeDistribution::initialisevars(){
 
 	unsigned long long int x;
 	x=(NofBarcodes*(NofBarcodes+1))/2;
 	NofIndexes=(NofBarcodes*(NofBarcodes-1)/2);
 
 	EditDist=(unsigned long long int*)  malloc((x)*sizeof(unsigned long long int));
+	if (EditDist == NULL)
+		return false;
 	EDDistribution=(unsigned long long int*) malloc(SeqLen*sizeof(unsigned long long int));
+	if (EDDistribution == NULL)
+		return false;
 	dd=(unsigned int*) malloc(NofBarcodes*sizeof(unsigned int));
+	if (dd == NULL)
+		return false;
+
+	return true;
 
 }
 string DegreeDistribution::RevComp(std::string s){	
