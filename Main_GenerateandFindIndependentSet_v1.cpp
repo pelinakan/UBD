@@ -268,7 +268,10 @@ int main(int argc, char *argv[]){
 	strcpy(EDDistFNC,FN2.c_str());
 
 	DegreeDist.NofBarcodes=NW.CommonSet.size();
-	DegreeDist.initialisevars();
+	if (!DegreeDist.initialisevars()) {
+		fprintf(stderr,"Unable to allocate memory for degree distribution computation\n. Skipping...\n");
+		return 0;
+	}
 	DegreeDist.GenerateNetwork(NW.CommonSet);
 	DegreeDist.DegreeDist(DDFNC,EDDistFNC/*,NW.CommonSet*/);
 
