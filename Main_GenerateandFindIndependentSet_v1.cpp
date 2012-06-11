@@ -211,6 +211,8 @@ int main(int argc, char *argv[]){
 	omp_set_num_threads(N_THREADS);
 	pthread_mutex_init(&poolMutex,NULL);
 
+	unsigned long int old_count = 0;
+	unsigned long int same_count = 0;
 	//Sequences.initialisevars();
 	Sequences.DetermineFilteringThresholds();
 	//Startup generating threads!
@@ -242,7 +244,15 @@ int main(int argc, char *argv[]){
 		  ++i;
 		}
 		sequenceVector.clear();
-
+		/*if (old_count != NW.CommonSet.size()) {
+		  old_count = NW.CommonSet.size();
+		  same_count = 0;
+		} else {
+		  ++same_count;
+		  if (same_count > 100)
+		    fprintf(stdout,"Found solution with %ld\n",old_count);
+		    }*/
+		
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
 	
 	//Cleanup generating threads!
