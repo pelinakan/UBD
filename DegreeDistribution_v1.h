@@ -93,7 +93,6 @@ void DegreeDistribution::GenerateNetwork(vector <string> &Barcodes){
 //	ofstream tempf("temp_debug.txt");
 
 NofBarcodes=Barcodes.size();
-initialisevars();
 
 	long int i,j;
 	for(i=0;i<SeqLen;i++)
@@ -104,10 +103,11 @@ initialisevars();
 	for(i=0;i<NofBarcodes-1;++i){
 #pragma omp parallel for
 		for(j=i+1;j<NofBarcodes;++j){
-			unsigned long long int index=0;
-			index=((((NofBarcodes*(NofBarcodes-1)/2)- ((NofBarcodes-i)*((NofBarcodes-i-1))/2))))+ (j-i-1); // index of the pair
-			EditDist[index]=CalculateEditDistance(Barcodes[i],Barcodes[j]);
-			++EDDistribution[EditDist[index]];
+			//unsigned long long int index=0;
+			//index=((((NofBarcodes*(NofBarcodes-1)/2)- ((NofBarcodes-i)*((NofBarcodes-i-1))/2))))+ (j-i-1); // index of the pair
+			//EditDist[index]=CalculateEditDistance(Barcodes[i],Barcodes[j]);
+			//++EDDistribution[EditDist[index]];
+			++EDDistribution[CalculateEditDistance(Barcodes[i],Barcodes[j])];
 		}
 		if(i%50==0)
 			cout << i << endl;
@@ -147,18 +147,30 @@ unsigned long long DegreeDistribution::FindMax(void){
 }
 void DegreeDistribution::DegreeDist(char *fname, char *fname2 /*,vector <string> &IndependentSet*/){
 
-unsigned long long i;
+	unsigned long long i;
 unsigned long int edi=0,j,nodeindex=0,nodedegree;
 unsigned long long MinED, MaxED,ed,lastnodedd=0;
+
+
+	MinED=FindMin();
+cout << "MinED   " << MinED << endl;
+MaxED=FindMax();
+cout << "MaxED   " << MaxED << endl;
+
+
+	// Print Edit Distance Distribution
+ofstream outf2(fname2);
+
+	for(ed=0;ed<SeqLen;ed++){
+		outf2 << ed << '\t' << EDDistribution[ed] << endl;
+	}
+outf2.close();
+
+return;
 
 vector< vector < unsigned long int> > dd; //Degree Distribution
 
 cout << "Entered Degree Distribution Function and created the vector" << endl;
-
-MinED=FindMin();
-cout << "MinED   " << MinED << endl;
-MaxED=FindMax();
-cout << "MaxED   " << MaxED << endl;
 
 for(ed=MinED;ed<=MaxED;ed++){ // For each edit distance
 	lastnodedd=0;
@@ -214,14 +226,6 @@ for(ed=MinED;ed<=MaxED;ed++){
 	edi++;
 }
 outf.close();
-
-// Print Edit Distance Distribution
-ofstream outf2(fname2);
-
-	for(ed=MinED;ed<=MaxED;ed++){
-		outf2 << ed << '\t' << EDDistribution[ed] << endl;
-	}
-outf2.close();
 
 }
 
