@@ -1,21 +1,30 @@
 // NO BARCODE FILTERING, NODES ARE SELECTED AT RANDOM TO ADD TO THE UNIQUE SET
 class Network{
-	bool *Used;
+
 public:
 	Network();
+	~Network();
 	vector<string> PutBarcodes; //Keep the putative barcodes
 	unsigned long int NofPutBarcodes;
 	vector <string> CommonSet;
 	vector< vector <double> > Features;
-	int GenerateRandomNode(void);
-	void initialisevars(void);
-	int CalculateEditDistance(string, string);
 	void RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
 	static string RevComp(string);
+	void PrintEditDistanceDistribution(char *fname);
+private:
+	int CalculateEditDistance(string, string);
+	unsigned int* editDistDistribution;
 };
 
 Network::Network(){
+	editDistDistribution = new unsigned int[SeqLen];
+	for (int i=0; i<SeqLen; ++i)
+		editDistDistribution[i] = 0;
+}
+
+Network::~Network() {
+	delete[] editDistDistribution;
 }
 
 string Network::RevComp(string s){	
@@ -32,16 +41,7 @@ string Network::RevComp(string s){
 
 	return s_revcom;
 }
-void Network::initialisevars(void){
-	unsigned int i;
-	Used=(bool*) malloc((NofPutBarcodes)*sizeof(bool));
-	for(i=0;i<NofPutBarcodes;i++)
-		Used[i]=0;
 
-//	EDDistribution=(unsigned long long int*) malloc(SeqLen*sizeof(unsigned long long int));
-//	dd=(unsigned int*) malloc(NofPutBarcodes*sizeof(unsigned int));
-
-}
 int Network::CalculateEditDistance(string s1, string s2){
 	
 	int x,y;
@@ -76,26 +76,21 @@ int Network::CalculateEditDistance(string s1, string s2){
 	return ret;
 }
 
-int Network::GenerateRandomNode(void){
-
-	unsigned long int rn;
-	do{
-		rn=NofPutBarcodes*rand()/(RAND_MAX+1.0); // Generate the first random node
-	}while(Used[rn]);
-	Used[rn]=1;
-	return rn;
-}
 void Network::RetrieveUniqueNodes(string putbarcode){
 
 long int k;
 bool addtoset=1;
 bool done=false;
 
+unsigned int* localDistribution = new unsigned int[SeqLen];
+for (int i=0; i<SeqLen; ++i) localDistribution[i] = 0;
+
 #pragma omp parallel for default(shared) schedule(dynamic,200)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
    //#pragma omp critical
    if(!done){
      unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+	 ++localDistribution[editdist];
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
        {
@@ -106,9 +101,13 @@ bool done=false;
    }
 }
 
-if(addtoset)
+if(addtoset) {
   CommonSet.push_back(putbarcode); //Add it to the set if it not connected to the previously added members
- 
+  //Also add the distribution parameters
+  for (int i=0; i<SeqLen; ++i) {
+	  editDistDistribution[i] += localDistribution[i];
+	}
+}
 if(CommonSet.size()%500==0)
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
 
@@ -124,4 +123,15 @@ void Network::PrintUniquePutBarcodes(const char *fname){
 	}
 	outf.close();
 
+}
+
+void Network::PrintEditDistanceDistribution(char *fname)
+{
+	// Print Edit Distance Distribution
+	ofstream outf2(fname);
+
+	for(int ed=0;ed<SeqLen;ed++){
+		outf2 << ed << '\t' << editDistDistribution[ed] << endl;
+	}
+	outf2.close();
 }

@@ -256,24 +256,24 @@ int main(int argc, char *argv[]){
 	FN.append("_UniqueBarcodes.txt");
 	strcpy(UniqueBarcodeFNC,FN.c_str());
 
-	NW.PrintUniquePutBarcodes(UniqueBarcodeFNC);
-
-	FN1.append(PutSeqFNS);
-	FN1.append("_DegreeDistribution.txt");
-	strcpy(DDFNC,FN1.c_str());
-	
-
 	FN2.append(PutSeqFNS);
 	FN2.append("_EDDistribution.txt");
 	strcpy(EDDistFNC,FN2.c_str());
 
-	DegreeDist.NofBarcodes=NW.CommonSet.size();
+	NW.PrintUniquePutBarcodes(UniqueBarcodeFNC);
+	NW.PrintEditDistanceDistribution(EDDistFNC);
+
+	/*FN1.append(PutSeqFNS);
+	FN1.append("_DegreeDistribution.txt");
+	strcpy(DDFNC,FN1.c_str());*/
+
+	/*DegreeDist.NofBarcodes=NW.CommonSet.size();
 	if (!DegreeDist.initialisevars()) {
 		fprintf(stderr,"Unable to allocate memory for degree distribution computation\n. Skipping...\n");
 		return 0;
 	}
 	DegreeDist.GenerateNetwork(NW.CommonSet);
-	DegreeDist.DegreeDist(DDFNC,EDDistFNC/*,NW.CommonSet*/);
+	DegreeDist.DegreeDist(DDFNC,EDDistFNC);*/
 
 	return 0;
 }

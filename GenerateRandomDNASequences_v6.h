@@ -259,7 +259,8 @@ bool addToPool(string seq, vector<string>& buffer)
 
 void* generateRandomChecked(void* args)
 {
-
+	//Seed random
+	srand(time(NULL));
 	string seq,seq_rc,probe;
 	int lzwscore,ed;
 	double dG, dS,dH,Tm;
