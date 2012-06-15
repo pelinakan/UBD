@@ -53,7 +53,7 @@ vector<string> RestrictionList;
 //***********C O N S T A N T S******************
 const double R = 0.0019872; //For Tm calculations
 //**********************************************
-const int N_THREADS=6;
+const int N_THREADS=7;
 #include <pthread.h>
 pthread_mutex_t poolMutex;
 std::vector<string> pool;

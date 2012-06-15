@@ -18,8 +18,8 @@ private:
 };
 
 Network::Network(){
-	editDistDistribution = new unsigned int[SeqLen];
-	for (int i=0; i<SeqLen; ++i)
+	editDistDistribution = new unsigned int[SeqLen+1];
+	for (int i=0; i<=SeqLen; ++i)
 		editDistDistribution[i] = 0;
 }
 
@@ -82,14 +82,16 @@ long int k;
 bool addtoset=1;
 bool done=false;
 
-unsigned int* localDistribution = new unsigned int[SeqLen];
-for (int i=0; i<SeqLen; ++i) localDistribution[i] = 0;
+unsigned int* localDistribution = new unsigned int[SeqLen+1];
+for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
 
 #pragma omp parallel for default(shared) schedule(dynamic,200)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
    //#pragma omp critical
    if(!done){
      unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+     if (editdist > SeqLen)
+       fprintf(stdout,"oups\n");
 	 ++localDistribution[editdist];
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
@@ -108,6 +110,8 @@ if(addtoset) {
 	  editDistDistribution[i] += localDistribution[i];
 	}
 }
+ delete[] localDistribution;
+
 if(CommonSet.size()%500==0)
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
 
