@@ -66,6 +66,8 @@ bool die = false;
 #include "DegreeDistribution_v1.h"
 //**********************************************
 
+long int rejected=0;
+
 //***************I/O FILE NAMES****************************************************
 string PutSeqFNS="";
 //************************************************************************
@@ -200,7 +202,7 @@ int main(int argc, char *argv[]){
 	GenerateSequences Sequences;
 	Network NW;
 	DegreeDistribution DegreeDist;
-	char /*PutSeqFNC[150],*/UniqueBarcodeFNC[150],EDDistFNC[150],DDFNC[150];
+	char UniqueBarcodeFNC[150],EDDistFNC[150],DDFNC[150];
 
 
 	unsigned long int i=0; // Keep number of barcodes
@@ -219,6 +221,7 @@ int main(int argc, char *argv[]){
 	Sequences.GenerateRandomSequence_SetGC();
 	//Create local buffer.
 	vector<string> sequenceVector;
+	long int consecutiveRejection = 0;
 	do{
 		//Wait for pool!
 		pthread_mutex_lock(&poolMutex);
@@ -238,23 +241,26 @@ int main(int argc, char *argv[]){
 		}
 		i=0;
 		while (i < sequenceVector.size()) {
-		  NW.RetrieveUniqueNodes(sequenceVector[i]);
+		  if (!NW.RetrieveUniqueNodes(sequenceVector[i])){
+		    ++rejected;
+		    ++consecutiveRejection;
+		    if (consecutiveRejection > 1000000) {
+		      goto Done;
+		    }
+		    //fprintf(stdout,"%s\n",sequenceVector[i].c_str());
+		  } else {
+		    consecutiveRejection = 0;
+		  }
 		  if (NW.CommonSet.size() > DesiredNofBarcodes)
 		    break;
 		  ++i;
 		}
 		sequenceVector.clear();
-		/*if (old_count != NW.CommonSet.size()) {
-		  old_count = NW.CommonSet.size();
-		  same_count = 0;
-		} else {
-		  ++same_count;
-		  if (same_count > 100)
-		    fprintf(stdout,"Found solution with %ld\n",old_count);
-		    }*/
 		
 	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
-	
+
+ Done:
+	cout << NW.CommonSet.size() << endl;
 	//Cleanup generating threads!
 	pthread_mutex_lock(&poolMutex);
 	die = true;
@@ -273,17 +279,7 @@ int main(int argc, char *argv[]){
 	NW.PrintUniquePutBarcodes(UniqueBarcodeFNC);
 	NW.PrintEditDistanceDistribution(EDDistFNC);
 
-	/*FN1.append(PutSeqFNS);
-	FN1.append("_DegreeDistribution.txt");
-	strcpy(DDFNC,FN1.c_str());*/
-
-	/*DegreeDist.NofBarcodes=NW.CommonSet.size();
-	if (!DegreeDist.initialisevars()) {
-		fprintf(stderr,"Unable to allocate memory for degree distribution computation\n. Skipping...\n");
-		return 0;
-	}
-	DegreeDist.GenerateNetwork(NW.CommonSet);
-	DegreeDist.DegreeDist(DDFNC,EDDistFNC);*/
+	fprintf(stdout,"Rejected: %ld\n",rejected);
 
 	return 0;
 }
