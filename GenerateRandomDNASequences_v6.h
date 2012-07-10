@@ -56,10 +56,10 @@ GenerateSequences::~GenerateSequences()
 string GenerateSequences::randomseq_setGC(int GCcontent){
 
    int i,x,noffilledpos=0;
-   double slen,y;
+   double slen;
+   int y;
    bool* filled = new bool[SeqLen];
    string qual,randseq;
-
    randseq.resize(SeqLen);
    for(i=0;i<SeqLen;i++) filled[i]=0; // Initialise the array keeping the state of each position
    slen=double(SeqLen);
@@ -68,8 +68,10 @@ string GenerateSequences::randomseq_setGC(int GCcontent){
 	   x = (int) (slen*rand()/(RAND_MAX+1.0)); //which position will be C or G
 	   if(!(filled[x])){
 		   filled[x]=1;
-		   y = (double) (rand()/(RAND_MAX+1.0)); //is it C or G
-		   if(y<0.5)
+		   //y = (double) (rand()/(RAND_MAX+1.0)); //is it C or G
+		   //if(y<0.5)
+		   y = rand();
+		   if (y % 2 == 0)
 			   randseq[x]='C';
 		   else
 			   randseq[x]='G';
@@ -78,11 +80,13 @@ string GenerateSequences::randomseq_setGC(int GCcontent){
    }
    for(i=0;i<SeqLen;i++){
 	   if(!filled[i]){
-		   y = (double) (rand()/(RAND_MAX+1.0)); //is it C or G
-		   if(y<0.5)
-			   randseq[i]='A';
-		   else
-			   randseq[i]='T';
+	     //y = (double) (rand()/(RAND_MAX+1.0)); //is it C or G
+	     //if(y<0.5)
+	     y = rand();
+	     if (y % 2 == 0)
+	       randseq[i]='A';
+	     else
+	       randseq[i]='T';
 	   }
    }
    delete[] filled;
@@ -215,7 +219,7 @@ LenDiffThreshold=SeqLen-lwzscore;
 }
 
 typedef struct {
-	int GCcontent;
+  int gcmin,gcmax;
 	GenerateSequences* father;
 }params;
 
@@ -266,58 +270,63 @@ void* generateRandomChecked(void* args)
 	double dG, dS,dH,Tm;
 	bool passedrepeatcheck;
 	params *p = (params*)args;
-	int GCcontent = p->GCcontent;
+	int gcmin = p->gcmin;
+	int gcmax = p->gcmax;
+	int GCcontent = 0;
 	HybridSSMin* hybMin=new HybridSSMin(SelfHybT,Hyb_Temperature);
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
-	while (true){		
-		seq = mother->randomseq_setGC(GCcontent); //Generate Random Seq
-		probe= GenerateSequences::AppendAdaptors(seq);
-		//Check self-hybridization
-		hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str());
-		dS=(dH-dG)/(273.15+ SelfHybT);
-		Tm=(dH/dS)-273.15;
-		if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
-			//CHECK ILLUMINA HANDLE VS BARCODE HYB
-			bool failedHandleHyb = false;
-			for (int i=0; i < (int)AdaptorList.size(); ++i) {
-				hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str());
-				dS=(dH-dG)/(273.15+ Hyb_Temperature);
-				Tm=dH/(dS+R*log(0.00001/4));
-				Tm-=273.15;
-				if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
-					failedHandleHyb = true;
-					break;
-				}
-			}
-			if (!failedHandleHyb) {
-				//Check for repeats
-				passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
-				if (passedrepeatcheck) {
-					//Check for complexity
-					lzwscore=lzw(seq);
-					if(lzwscore<=LenDiffThreshold) {
-						//Check for edit distance to reverse complement
-						seq_rc = mother->RevComp(seq);
-						ed = mother->CalculateEditDistance(seq,seq_rc);
-						if(ed>=EditDistanceThreshold_Self){
-							//Check if it contains restriction sites from given list.
-							bool failedRestrictionSites = false;
-							for (int i=0; i<(int)RestrictionList.size();++i) {
-								if (seq.find(RestrictionList[i]) != string::npos) {//Found overlap with restriction site
-									failedRestrictionSites = true;
-									break;
-								}
-							}
-							if (!failedRestrictionSites) {//Passed everything
-								if (!addToPool(seq,buffer))//Will return false if job is over.
-									break;
-							}
-						}
-					}
-				}
-			}
+	while (true){
+	  int x = (int) (rand()%(gcmax-gcmin+1)); //SET THE GC CONTENT
+	  GCcontent = gcmin + x; //SET THE GC CONTENT
+	  seq = mother->randomseq_setGC(GCcontent); //Generate Random Seq
+
+	  probe= GenerateSequences::AppendAdaptors(seq);
+	  //Check self-hybridization
+	  hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str());
+	  dS=(dH-dG)/(273.15+ SelfHybT);
+	  Tm=(dH/dS)-273.15;
+	  if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
+	    //CHECK ILLUMINA HANDLE VS BARCODE HYB
+	    bool failedHandleHyb = false;
+	    for (int i=0; i < (int)AdaptorList.size(); ++i) {
+	      hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str());
+	      dS=(dH-dG)/(273.15+ Hyb_Temperature);
+	      Tm=dH/(dS+R*log(0.00001/4));
+	      Tm-=273.15;
+	      if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
+		failedHandleHyb = true;
+		break;
+	      }
+	    }
+	    if (!failedHandleHyb) {
+	      //Check for repeats
+	      passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
+	      if (passedrepeatcheck) {
+		//Check for complexity
+		lzwscore=lzw(seq);
+		if(lzwscore<=LenDiffThreshold) {
+		  //Check for edit distance to reverse complement
+		  seq_rc = mother->RevComp(seq);
+		  ed = mother->CalculateEditDistance(seq,seq_rc);
+		  if(ed>=EditDistanceThreshold_Self){
+		    //Check if it contains restriction sites from given list.
+		    bool failedRestrictionSites = false;
+		    for (int i=0; i<(int)RestrictionList.size();++i) {
+		      if (seq.find(RestrictionList[i]) != string::npos) {//Found overlap with restriction site
+			failedRestrictionSites = true;
+			break;
+		      }
+		    }
+		    if (!failedRestrictionSites) {//Passed everything
+		      if (!addToPool(seq,buffer))//Will return false if job is over.
+			break;
+		    }
+		  }
 		}
+	      }
+	    }
+	  }
 	}
 	delete hybMin;
 	delete mother;
@@ -328,14 +337,11 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
 	
 	string Tstr,passedseq;
 
-	int gcmin,gcmax,GCcontent;
+	int gcmin,gcmax;
 	gcmin=MinGC*SeqLen;	gcmax=MaxGC*SeqLen;
 
 	std::stringstream temperature;
 	temperature << SelfHybT;
-	
-	int x = (int) ((gcmax-gcmin)*rand()/(RAND_MAX+1.0)); //SET THE GC CONTENT
-	GCcontent=gcmin+x; //SET THE GC CONTENT
 
 	//Start threads!
 	pthread_attr_t attr;
@@ -346,7 +352,8 @@ void GenerateSequences::GenerateRandomSequence_SetGC(){
     //Create the world!
 	for (int i=0;i<1;++i) {
 	  	params* p = new params();
-		p->GCcontent = GCcontent;
+		p->gcmin = gcmin;
+		p->gcmax = gcmax;
 		p->father = new GenerateSequences();
 		int rc = pthread_create(&someThread,&attr,&generateRandomChecked,p);
 		if (rc != 0) {//Thread creation failed!

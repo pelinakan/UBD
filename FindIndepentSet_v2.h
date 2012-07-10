@@ -8,7 +8,7 @@ public:
 	unsigned long int NofPutBarcodes;
 	vector <string> CommonSet;
 	vector< vector <double> > Features;
-	void RetrieveUniqueNodes(string);
+	bool RetrieveUniqueNodes(string);
 	void PrintUniquePutBarcodes(const char*);
 	static string RevComp(string);
 	void PrintEditDistanceDistribution(char *fname);
@@ -76,10 +76,10 @@ int Network::CalculateEditDistance(string s1, string s2){
 	return ret;
 }
 
-void Network::RetrieveUniqueNodes(string putbarcode){
+bool Network::RetrieveUniqueNodes(string putbarcode){
 
 long int k;
-bool addtoset=1;
+bool addtoset=true;
 bool done=false;
 
 unsigned int* localDistribution = new unsigned int[SeqLen+1];
@@ -94,7 +94,7 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
        {
-	 addtoset=0;
+	 addtoset=false;
 	 done=true;
        }
      }
@@ -107,11 +107,15 @@ if(addtoset) {
   for (int i=0; i<SeqLen; ++i) {
 	  editDistDistribution[i] += localDistribution[i];
 	}
-}
+ }
  delete[] localDistribution;
 
-if(CommonSet.size()%500==0)
+ if(CommonSet.size()%500==0) {
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
+ }
+
+
+ return addtoset;
 
 }
 
