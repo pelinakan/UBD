@@ -90,8 +90,6 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
    //#pragma omp critical
    if(!done){
      unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
-     if (editdist > SeqLen)
-       fprintf(stdout,"oups\n");
 	 ++localDistribution[editdist];
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
