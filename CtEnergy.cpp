@@ -92,7 +92,7 @@ double CtEnergy::compute(HybridSSMin* hComp, int* bp, int* upst, int* dnst)
 		    continue;
 
 		  /* circular permutation */
-		  g_seq = (unsigned char*)realloc(g_seq, g_len + i);
+		  g_seq = (unsigned char*)realloc(g_seq, (g_len + i) * sizeof(unsigned char));
 		  g_bp = (int*)realloc(g_bp, (g_len + i) * sizeof(int));
 		  g_numbers = (int*)realloc(g_numbers, (g_len + i) * sizeof(int));
 		  g_prev = (int*)realloc(g_prev, (g_len + i) * sizeof(int));

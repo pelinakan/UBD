@@ -13,18 +13,39 @@ public:
 	static string RevComp(string);
 	void PrintEditDistanceDistribution(char *fname);
 private:
-	int CalculateEditDistance(string, string);
+	int CalculateEditDistance(string, string, unsigned int **d);
 	unsigned int* editDistDistribution;
+	unsigned int*** d;
 };
 
 Network::Network(){
 	editDistDistribution = new unsigned int[SeqLen+1];
 	for (int i=0; i<=SeqLen; ++i)
 		editDistDistribution[i] = 0;
+	//Create matrices for all edit distance computations
+	int maxThreads = omp_get_max_threads();
+	d = new unsigned int**[maxThreads + 1];
+	for (int k=0; k < maxThreads; ++k ) {
+		d[k] = new unsigned int*[SeqLen+1];
+		for (int i=0;i<=SeqLen;++i) {
+			d[k][i] = new unsigned int[SeqLen+1];
+		}
+		d[k][0][0] = 0;
+		for(int x = 1; x <= SeqLen; ++x) d[k][x][0] = x;
+		for(int x = 1; x <= SeqLen; ++x) d[k][0][x] = x;
+	}
 }
 
 Network::~Network() {
 	delete[] editDistDistribution;
+	int maxThreads = omp_get_max_threads();
+	for (int k=0; k < maxThreads; ++k ) {
+		for (int i=0;i<=SeqLen;++i) {
+			delete[] d[k][i];
+		}
+		delete[] d[k];
+	}
+	delete[] d;
 }
 
 string Network::RevComp(string s){	
@@ -42,18 +63,16 @@ string Network::RevComp(string s){
 	return s_revcom;
 }
 
-int Network::CalculateEditDistance(string s1, string s2){
+int Network::CalculateEditDistance(string s1, string s2, unsigned int **d){
 	
 	int x,y;
 	string s2_revcom;
-	unsigned int **d = new unsigned int*[SeqLen+1];
-	for (int i=0;i<=SeqLen;++i) {
-		d[i] = new unsigned int[SeqLen+1];
-	}
-	d[0][0] = 0;
-	for(int x = 1; x <= SeqLen; ++x) d[x][0] = x;
-	for(int x = 1; x <= SeqLen; ++x) d[0][x] = x;
 	const int len=SeqLen;
+
+	if (d == NULL) {
+		fprintf(stdout,"Something went very wrong\n");
+		return 0;
+	}
 
 	for(x = 1; x <= len; ++x)
 			for(y = 1; y <= len; ++y)
@@ -68,10 +87,6 @@ int Network::CalculateEditDistance(string s1, string s2){
 	}
 
 	int ret = d[len][len];
-	for (int i=0;i<=SeqLen;++i) {
-		delete[] d[i];
-	}
-	delete[] d;
 
 	return ret;
 }
@@ -88,8 +103,9 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
 #pragma omp parallel for default(shared) schedule(dynamic,200)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
    //#pragma omp critical
+	 int id = omp_get_thread_num();
    if(!done){
-     unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k]); // Check reverse complement also
+     unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k],d[id]); // Check reverse complement also
      if (editdist > SeqLen)
        fprintf(stdout,"oups\n");
 	 ++localDistribution[editdist];
@@ -112,9 +128,9 @@ if(addtoset) {
  }
  delete[] localDistribution;
 
- if(CommonSet.size()%500==0) {
+ /*if(CommonSet.size()%500==0) {
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
- }
+ }*/
 
 
  return addtoset;

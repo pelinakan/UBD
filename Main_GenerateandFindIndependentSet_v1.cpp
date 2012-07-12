@@ -164,6 +164,8 @@ bool parseConfig(string path)
 			fprintf(stderr,"Unable to parse %s variable\n",key.c_str());
 		}
 	}
+
+	return true;
 }
 
 int main(int argc, char *argv[]){
@@ -196,7 +198,10 @@ int main(int argc, char *argv[]){
 	PutSeqFNS = argv[optind];
 
 	//Parse config file
-	parseConfig(configPath);
+	if (!parseConfig(configPath)) {
+	  fprintf(stdout,"Cannot read config file: %s\n",configPath.c_str());
+	  return 1;
+	}
 
 	string temp,seq, FN,FN1,FN2,s0;
 	GenerateSequences Sequences;
@@ -251,20 +256,18 @@ int main(int argc, char *argv[]){
 		  } else {
 		    consecutiveRejection = 0;
 		  }
-		  if (NW.CommonSet.size() > DesiredNofBarcodes)
+		  if (NW.CommonSet.size() >= DesiredNofBarcodes)
 		    break;
 		  ++i;
 		}
 		sequenceVector.clear();
 		
-	}while(NW.CommonSet.size()<=DesiredNofBarcodes);
+	}while(NW.CommonSet.size()<DesiredNofBarcodes);
 
  Done:
-	cout << NW.CommonSet.size() << endl;
 	//Cleanup generating threads!
 	pthread_mutex_lock(&poolMutex);
 	die = true;
-	cout << pool.size() << endl;
 	pool.clear();
 	pthread_mutex_unlock(&poolMutex);
 
@@ -278,8 +281,6 @@ int main(int argc, char *argv[]){
 
 	NW.PrintUniquePutBarcodes(UniqueBarcodeFNC);
 	NW.PrintEditDistanceDistribution(EDDistFNC);
-
-	fprintf(stdout,"Rejected: %ld\n",rejected);
 
 	return 0;
 }
