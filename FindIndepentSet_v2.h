@@ -128,9 +128,9 @@ if(addtoset) {
  }
  delete[] localDistribution;
 
- /*if(CommonSet.size()%500==0) {
+ if(CommonSet.size()%500==0) {
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
- }*/
+ }
 
 
  return addtoset;
