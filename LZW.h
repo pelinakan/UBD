@@ -96,20 +96,16 @@ std::string decompress(Iterator begin, Iterator end) {
   return result;
 }
  
-#include <iostream>
 #include <iterator>
 #include <vector>
- 
+
+/*
+ * Return the size of the compressed sequence
+ */
 int lzw (string seq){
 
 	std::vector<int> compressed;
-	DNA_compress(seq, std::back_inserter(compressed));
-
-	//	copy(compressed.begin(), compressed.end(), std::ostream_iterator<int>(std::cout, ", "));
-//	std::cout << std::endl;
-//	std::string decompressed = decompress(compressed.begin(), compressed.end());
-//	std::cout << decompressed << std::endl;
- 
-	return (seq.size()-compressed.size());
+	DNA_compress(seq, std::back_inserter(compressed)); 
+	return (compressed.size());
  
 }

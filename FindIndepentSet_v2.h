@@ -24,7 +24,7 @@ Network::Network(){
 		editDistDistribution[i] = 0;
 	//Create matrices for all edit distance computations
 	int maxThreads = omp_get_max_threads();
-	d = new unsigned int**[maxThreads + 1];
+	d = new unsigned int**[maxThreads];
 	for (int k=0; k < maxThreads; ++k ) {
 		d[k] = new unsigned int*[SeqLen+1];
 		for (int i=0;i<=SeqLen;++i) {
@@ -102,12 +102,10 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
 
 #pragma omp parallel for default(shared) schedule(dynamic,200)
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
-   //#pragma omp critical
+ 
 	 int id = omp_get_thread_num();
    if(!done){
      unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k],d[id]); // Check reverse complement also
-     if (editdist > SeqLen)
-       fprintf(stdout,"oups\n");
 	 ++localDistribution[editdist];
      if(editdist<=EditDistanceThreshold){
 #pragma omp critical
