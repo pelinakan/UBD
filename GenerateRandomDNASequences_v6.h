@@ -202,19 +202,14 @@ string GenerateSequences::AppendAdaptors(string &PutBarcode){
 
 void GenerateSequences::DetermineFilteringThresholds(void){
 
-int i,lwzscore;
-string s1,s2,s3;
+int i;
+string s1;
 
 for(i=0;i<SeqLen;i++)	s1.append("A");
 
-for(i=0;i<SeqLen/2;i++)		s2.append("A");
-/*for(i=SeqLen/2;i<SeqLen;i++)	s2.append("T");
-for(i=0;i<SeqLen;i+=4){
-	s3.append("A"); s3.append("T"); s3.append("C"); s3.append("G");
-}
-*/
-lwzscore=lzw(s1); //LWZ score of the least complex sequence
-LenDiffThreshold=SeqLen-lwzscore;
+LenDiffThreshold = lzw(s1); //LWZ score of the least complex sequence
+
+LenDiffThreshold = SeqLen/2;
 
 }
 
@@ -304,8 +299,8 @@ void* generateRandomChecked(void* args)
 	      passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
 	      if (passedrepeatcheck) {
 		//Check for complexity
-		lzwscore=lzw(seq);
-		if(lzwscore<=LenDiffThreshold) {
+		lzwscore = lzw(seq);
+		if(lzwscore >= LenDiffThreshold) {
 		  //Check for edit distance to reverse complement
 		  seq_rc = mother->RevComp(seq);
 		  ed = mother->CalculateEditDistance(seq,seq_rc);
