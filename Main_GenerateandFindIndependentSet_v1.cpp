@@ -36,6 +36,7 @@ map<string,parserEntry*> parseMap;
 //////////////////////////////////////
 
 int SeqLen; //LENGTH OF THE SEQUENCE IDENTIFIER (BARCODE)
+int padding; //PADDING AROUND SEMI-GLOBAL ALIGNMENT
 unsigned long int DesiredNofBarcodes; //NUMBER OF BARCODES NEEDED
 string LeftAdaptor; //THE ADAPTOR SEQUENCE ADDED TO THE LEFT OF THE BARCODE (5')
 string RightAdaptor; //THE ADAPTOR SEQUENCE ADDED TO THE RIGHT OF THE BARCODE (3')
@@ -91,6 +92,7 @@ void buildParserMap()
 	//Integers
 	parseMap["desiredBarcodeLength"] = new parserEntry(1,&SeqLen);
 	parseMap["homopolymerLimit"] = new parserEntry(1,&homoplimit);
+	parseMap["padding"] = new parserEntry(1,&padding);
 
 	//Strings
 	parseMap["leftAdaptor"] = new parserEntry(2,&LeftAdaptor);

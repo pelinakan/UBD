@@ -26,12 +26,12 @@ Network::Network(){
 	int maxThreads = omp_get_max_threads();
 	d = new unsigned int**[maxThreads];
 	for (int k=0; k < maxThreads; ++k ) {
-		d[k] = new unsigned int*[SeqLen+1];
-		for (int i=0;i<=SeqLen;++i) {
+		d[k] = new unsigned int*[SeqLen+1+2*padding];
+		for (int i=0;i<=SeqLen+2*padding;++i) {
 			d[k][i] = new unsigned int[SeqLen+1];
 		}
 		d[k][0][0] = 0;
-		for(int x = 1; x <= SeqLen; ++x) d[k][x][0] = x;
+		for(int x = 1; x <= SeqLen+2*padding; ++x) d[k][x][0] = 0;
 		for(int x = 1; x <= SeqLen; ++x) d[k][0][x] = x;
 	}
 }
@@ -66,6 +66,7 @@ string Network::RevComp(string s){
 int Network::CalculateEditDistance(string s1, string s2, unsigned int **d){
 	
 	int x,y;
+	int cost = 0;
 	string s2_revcom;
 	const int len=SeqLen;
 
@@ -74,21 +75,45 @@ int Network::CalculateEditDistance(string s1, string s2, unsigned int **d){
 		return 0;
 	}
 
-	for(x = 1; x <= len; ++x)
-			for(y = 1; y <= len; ++y)
-				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + (s1[x - 1] == s2[y - 1] ? 0 : 1) );
-	
-	if(d[len][len] > EditDistanceThreshold){
-	  s2_revcom=Network::RevComp(s2);
+	for(x = 1; x <= len+2*padding; ++x)
+		for(y = 1; y <= len; ++y) {
+			if (x<=padding || x>len+padding) //Wildcard!
+				cost = 0;
+			else
+				cost = (s1[x - padding - 1] == s2[y - 1] ? 0 : 1);
 
-		for(x = 1; x <= len; ++x)
-			for(y = 1; y <= len; ++y)
-				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + (s1[x - 1] == s2_revcom[y - 1] ? 0 : 1) );
+			d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + cost );
+		}
+	
+	//Find min for sub-global alignment
+	int min_ed = 1000;
+	for (int i=len+2*padding ; i>len-1;--i) {
+		if (d[i][len] < min_ed) {
+			min_ed = d[i][len];
+		}
 	}
 
-	int ret = d[len][len];
+	if(min_ed > EditDistanceThreshold){
+		s2_revcom=Network::RevComp(s2);
 
-	return ret;
+		for(x = 1; x <= len+2*padding; ++x)
+			for(y = 1; y <= len; ++y) {
+				if (x<=padding || x>len+padding) //Wildcard!
+					cost = 0;
+				else
+					cost = (s1[x - padding - 1] == s2_revcom[y - 1] ? 0 : 1);
+
+				d[x][y] = std::min( std::min(d[x - 1][y] + 1,d[x][y - 1] + 1),d[x - 1][y - 1] + cost );
+			}
+
+		for (int i=len+2*padding ; i>len-1;--i) {
+			if (d[i][len] < min_ed) {
+				min_ed = d[i][len];
+			}
+		}
+	}
+
+	return min_ed;
 }
 
 bool Network::RetrieveUniqueNodes(string putbarcode){
