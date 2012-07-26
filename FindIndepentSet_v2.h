@@ -14,6 +14,7 @@ public:
 	void PrintEditDistanceDistribution(char *fname);
 private:
 	int CalculateEditDistance(string, string, unsigned int **d);
+	bool printLock;
 	unsigned int* editDistDistribution;
 	unsigned int*** d;
 };
@@ -34,6 +35,7 @@ Network::Network(){
 		for(int x = 1; x <= SeqLen+2*padding; ++x) d[k][x][0] = 0;
 		for(int x = 1; x <= SeqLen; ++x) d[k][0][x] = x;
 	}
+	printLock = false;
 }
 
 Network::~Network() {
@@ -144,6 +146,7 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
 
 if(addtoset) {
   CommonSet.push_back(putbarcode); //Add it to the set if it not connected to the previously added members
+  printLock = false;
   //Also add the distribution parameters
   for (int i=0; i<SeqLen; ++i) {
 	  editDistDistribution[i] += localDistribution[i];
@@ -151,8 +154,9 @@ if(addtoset) {
  }
  delete[] localDistribution;
 
- if(CommonSet.size()%500==0) {
+ if(CommonSet.size()%500==0 && !(printLock)) {
 	cout << CommonSet.size() << "       Unique Barcodes Selected" << endl;
+	printLock = true;
  }
 
 
