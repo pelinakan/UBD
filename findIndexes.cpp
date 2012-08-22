@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -40,6 +41,14 @@ public:
 
 };
 
+struct IDWC{
+  std::string ID;
+  std::string xcoord;
+  std::string ycoord;
+};
+
+IDWC *IDwCoords = new IDWC[100];
+
 long int count = 0;
 long int perfectMatch = 0;
 long int totalReads = 0;
@@ -75,6 +84,8 @@ bool loadIds(FILE* snpFile)
 {
 	char line[100000];
 	char *tok = new char[10000];
+	int idindex=0;
+ 
 	for (int i=0; i<10000; ++i)
 		tok[i]='\0';
 	while (fgets(line,100000,snpFile)) {
@@ -86,15 +97,27 @@ bool loadIds(FILE* snpFile)
 		while (*t) {
 			t = pol_util::toksplit(t, '\t', tok, 10000);
 			if (pos == 0) {//ID
-				id = tok;
+				IDwCoords[idindex].ID = tok;
 			}
 			++pos;
-		}
-		mainIds_map[id] = 0;
-	}
-	delete[] tok;
+			t = pol_util::toksplit(t, '\t', tok, 10000);
+			IDwCoords[idindex].xcoord = tok; 
+			++pos; 
+			t = pol_util::toksplit(t, '\t', tok, 10000);
+			IDwCoords[idindex].ycoord = tok;
+		     
+			mainIds_map[IDwCoords[idindex].ID] = idindex;
+			std::cout << IDwCoords[idindex].ID << "  " << IDwCoords[idindex].xcoord << "  " << IDwCoords[idindex].ycoord << std::endl;
+			++idindex;
+		}		
 
-	return true;
+	}	
+	delete[] tok;
+	
+	std::cout << "IDs read" << std::endl;
+	for(auto it = mainIds_map.begin(); it != mainIds_map.end();++it)
+	   std::cout  << it->first << "  " << it->second << std::endl;	
+return true;
 }
 
 /*
@@ -228,13 +251,22 @@ void* idSearch(void* arguments)
 			std::string id = e->getSequence(pos-probeLength,pos);
 			std::string qual = e->getQuality(pos-probeLength,pos);
 			//Search ID in map!
-			it = mainIds_map.find(id);
+			it = mainIds_map.find(id);			
 			if (it != mainIds_map.end()) {//Found!
 				GUARDED_INC(count)
 				GUARDED_INC(perfectMatch)
 				//Print this to output map!
+				//int index;
+				//index = mainIds_map[id];
+				//std::cout << index << std::endl;
+				  std::cout << IDwCoords[(it->second)].ID << '\t' << IDwCoords[(it->second)].xcoord << '\t' << IDwCoords[(it->second)].ycoord << std::endl;
 				if (args.outFile != NULL) {
-					e->setOptional("barcode="+id);
+				  e->setOptional("+barcode="+id);
+				  //std::string temp;
+				  //temp = IDwCoords[(it->second)].xcoord;
+				  //e->setOptional("  "+temp);
+				  e->setOptional("  "+(IDwCoords[(it->second)].xcoord));
+				  e->setOptional("  "+(IDwCoords[(it->second)].ycoord));
 					pthread_mutex_lock(&writeMutex);
 					e->write(args.outFile);
 					pthread_mutex_unlock(&writeMutex);

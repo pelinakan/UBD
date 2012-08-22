@@ -128,7 +128,7 @@ public:
 
 	void setOptional(std::string info) {
 	  std::string s = m_strPlus;
-	  s += " " + info;
+	  s += info;
 	  delete[] m_strPlus;
 	  m_strPlus = new char[s.size()+1];
 	  strncpy(m_strPlus,s.c_str(),s.size()+1);

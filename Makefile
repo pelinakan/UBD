@@ -4,10 +4,7 @@ CC=g++
 CFLAGS=-Wall -O3
 UTILS = util/
 
-all: designBarcode findIndexes
-
-designBarcode: hybrid-ss-min.o CtEnergy.o
-	$(CC) $(CFLAGS) -fopenmp Main_GenerateandFindIndependentSet_v1.cpp hybrid-ss-min.cpp HybridMin.cpp CtEnergy.cpp energy.cpp util.cpp -o designBarcode -lpthread
+all: findIndexes
 
 findIndexes: findIndexes.o
 	$(CC) findIndexes.o -o findIndexes -lpthread -lz
@@ -17,5 +14,4 @@ findIndexes.o: findIndexes.cpp
 
 
 clean:
-	rm -rf *o designBarcode
 	rm -rf *o findIndexes
