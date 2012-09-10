@@ -217,7 +217,7 @@ int main(int argc, char *argv[]){
 	vector <string> randseqs;
 	string randseq_revcomp;
 	
-	omp_set_num_threads(N_THREADS);
+	//omp_set_num_threads(N_THREADS);
 	pthread_mutex_init(&poolMutex,NULL);
 
 	unsigned long int old_count = 0;
