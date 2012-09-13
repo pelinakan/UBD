@@ -131,6 +131,7 @@ for (int i=0; i<=SeqLen; ++i) localDistribution[i] = 0;
  for(k=0;k<CommonSet.size();++k){ // Make sure if the last selected node is not connected to already present nodes in the common set
  
 	 int id = omp_get_thread_num();
+	 //fprintf(stdout,"%d ",id);
    if(!done){
      unsigned int editdist = CalculateEditDistance(putbarcode,CommonSet[k],d[id]); // Check reverse complement also
 	 ++localDistribution[editdist];

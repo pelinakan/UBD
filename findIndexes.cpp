@@ -20,6 +20,7 @@ static int print_usage()
 	fprintf(stderr, "         -s INT     start position of ID [0]\n");
 	fprintf(stderr, "         -l INT     length of ID [0]\n");
 	fprintf(stderr, "         -e INT     id positional error [0]\n");
+	fprintf(stderr, "         -p STRING  name of pair file [NULL]\n");
 	fprintf(stderr, "\n");
 	return 1;
 }
@@ -56,6 +57,8 @@ int positionalError = 0;
 
 int qualMin = 1000;
 int qualMax = 0;
+
+std::string pairFile="";
 
 pthread_mutex_t readMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t writeMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -183,7 +186,7 @@ void createKmerMap(int kLen)
 }
 
 typedef struct {
-	FILE *inFile,*outFile;
+  FILE *inFile,*outFile,*pairFile,*pairFileOut;
 }threadArgs;
 
 /**
@@ -212,12 +215,15 @@ void* idSearch(void* arguments)
 	for(int x = 1; x <= xLen; ++x) d[x][0] = 0;
 	for(int x = 1; x <= yLen; ++x) d[0][x] = x;
 
-	pol_util::FastqEntry* e;
+	pol_util::FastqEntry* e,*e1;
+	e1=NULL;
 	threadArgs args = *(threadArgs*)arguments;
 	while (true) {
 		//Lock file mutex
 		pthread_mutex_lock(&readMutex);
 		e = pol_util::FastqEntry::readEntry(args.inFile);
+		if (args.pairFile!=NULL)
+		  e1 = pol_util::FastqEntry::readEntry(args.pairFile);
 		pthread_mutex_unlock(&readMutex);
 		if (e == NULL)
 			break;
@@ -237,6 +243,8 @@ void* idSearch(void* arguments)
 					e->setOptional("barcode="+id);
 					pthread_mutex_lock(&writeMutex);
 					e->write(args.outFile);
+					if (e1!=NULL)
+					  e1->write(args.pairFileOut);
 					pthread_mutex_unlock(&writeMutex);
 				}
 			} else {//Probably with mismatch!
@@ -327,12 +335,16 @@ void* idSearch(void* arguments)
 						e->setOptional("barcode="+found_id);
 						pthread_mutex_lock(&writeMutex);
 						e->write(args.outFile);
+						if (e1!=NULL)
+						  e1->write(args.pairFileOut);
 						pthread_mutex_unlock(&writeMutex);
 					}
 				} else {
 					//Still print this!
 					pthread_mutex_lock(&writeMutex);
 					e->write(args.outFile);
+					if (e1!=NULL)
+					  e1->write(args.pairFileOut);
 					pthread_mutex_unlock(&writeMutex);
 					if (!goodHit) {
 						GUARDED_INC(ambiguous)
@@ -346,6 +358,8 @@ void* idSearch(void* arguments)
 			}
 		}
 		delete e;
+		if (e1 != NULL)
+		  delete e1;
 	}
 
 	delete[] orderedIds;
@@ -366,7 +380,7 @@ int main(int argc, char *argv[])
 	FILE *out = NULL;
 	int arg;
 	//Get args
-	while ((arg = getopt(argc, argv, "m:k:s:l:e:")) >= 0) {
+	while ((arg = getopt(argc, argv, "m:k:s:l:e:p:")) >= 0) {
 		switch (arg) {
 		case 'm': mismatch = atoi(optarg); break;
 		case 'k': kLen = atoi(optarg);
@@ -379,6 +393,7 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'e': positionalError = atoi(optarg); break;
+		case 'p': pairFile = optarg; break;
 		default:
 			fprintf(stderr,"Read wrong arguments! \n");
 			break;
@@ -397,7 +412,9 @@ int main(int argc, char *argv[])
 	//Seed rand
 	srand((unsigned)time(0));
 	//Open files!
-	FILE *ids,*inF;
+	FILE *ids,*inF,*pairF,*pairFOut;
+	pairF = NULL;
+	pairFOut = NULL;
 	if ((ids = fopen(argv[optind], "r")) == 0) {
 		fprintf(stderr, "Failed to open file %s\n", argv[optind]);
 		return 1;
@@ -405,6 +422,18 @@ int main(int argc, char *argv[])
 	if ((inF = fopen(argv[optind+1], "r")) == 0) {
 		fprintf(stderr, "Failed to open file %s\n", argv[optind+1]);
 		return 1;
+	}
+	if (!pairFile.empty()) {
+	  if ((pairF = fopen(pairFile.c_str(),"r")) == 0) {
+	    fprintf(stderr, "Faile to open pair file %s\n", pairFile.c_str());
+	    return 1;
+	  }
+	  std::string outFile = argv[optind+2];
+	  outFile += "_pair";
+	  if ((pairFOut = fopen(outFile.c_str(), "w"))==0) {
+	    fprintf(stderr, "Failed to open pair output file: %s\n",outFile.c_str());
+	    return 1;
+	  }
 	}
 	if ((out = fopen(argv[optind+2], "w")) == 0) {
 		fprintf(stderr, "Failed to open for writing: %s\n", argv[optind+2]);
@@ -420,6 +449,8 @@ int main(int argc, char *argv[])
 	threadArgs args;
 	args.inFile = inF;
 	args.outFile = out;
+	args.pairFile = pairF;
+	args.pairFileOut = pairFOut;
 
 	/*DO THREAD STUFF*/
 	for (int i=0; i<8; ++i) {
@@ -442,7 +473,10 @@ int main(int argc, char *argv[])
 	fclose(inF);
 	if (out != NULL)
 		fclose(out);
-
+	if (pairF != NULL)
+	  fclose(pairF);
+	if (pairFOut != NULL)
+	  fclose(pairFOut);
 	return 0;
 }
 
