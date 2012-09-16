@@ -1,0 +1,50 @@
+#Lines with # are considered comments
+#general settings
+
+#Desired length of the barcode. Required
+desiredBarcodeLength = 20
+
+#Adaptors. The designed barcodes will be checked against interraction with these sequences. Optional
+leftAdaptor = ACACTCTTTCCCTACACGACGCTCTTCCGATCT
+#rightAdaptor
+
+#Maximum number of bases allowed in a homopolymer. Required
+homopolymerLimit = 4
+
+#Minimum GC content of barcode. Required
+minGC = 0.45
+
+#Maximum GC content of barcode. Required
+maxGC = 0.65
+
+#Temperature of self hybridization. Required
+selfHybridizationTemperature = 50.0
+
+#Temperature at which the hybridization is performed. Required
+hybridizationTemperature = 50.0
+
+#Minimum edit distance between barcodes. Ensure that no two barcodes are closer than this in distance space.
+#The higher this number, the more robust the barcodes are to sequencing errors. However, this number also reduces the
+#number of possible barcodes. Required
+minEditDistance = 4
+
+#Minimum edit distance to self. Required
+minEditDistanceSelf = 5
+
+#others
+#Handles are going to be checked against hybridization. Optional
+<handles>
+#Illumina A Handle
+ACACTCTTTCCCTACACGACGCTCTTCCGATCT
+#Illumina A Handle rev. compl.
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+#Illumina B Handle
+#GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT
+#Illumina B Handle rev. compl.
+#AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+</handles>
+
+#Restriction sites. Filter out sequences that contain given site. Optional
+<restrictionSites>
+#ATTG
+</restrictionSites>

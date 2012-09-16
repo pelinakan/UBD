@@ -12,7 +12,7 @@ static int print_usage()
 {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Program: findIndexes \n");
-	fprintf(stderr, "Contact: Paul Costea <paul.igor.costea@scilifelab.se>\n\n");
+	fprintf(stderr, "Contact: Paul Costea <paul.igor.costea@embl.de>\n\n");
 	fprintf(stderr, "Usage:   findIndexes [options] <ids.txt> <in.fastq> <out.fastq>\n\n");
 	fprintf(stderr, "Options: \n");
 	fprintf(stderr, "         -m INT     allowed mismatches [2]\n");
