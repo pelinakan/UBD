@@ -27,13 +27,12 @@ CONTENT
    
    b. WINDOWS
    Compilation and running is dependent on pThread, available for Windows from http://sources.redhat.com/pthreads-win32/
-   Compile .sln using Visual Studio or use binaries available form ??? (we should have the binaries somewhere too. Can SciLife host something ?)
-   
+   Compile .sln using Visual Studio or use binaries available form ??? 
 
 2. BARCODE DESIGNER
    This tool is used for designing a given number of barcodes adhering to a given set of constraints as defined in the "config" file.
    Usage:
-   	designBarcodes [options] <outpu>
+   	designBarcodes [options] <output_file_name>
    Options:
 	-c [STR]	Configuration file
 	Name of file containing the constraints. For an example of how to format this file and the available options, have a look at the "config_example.txt"
