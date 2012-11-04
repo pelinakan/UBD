@@ -12,7 +12,7 @@ CtEnergy::CtEnergy(void)
 	//Set relevant variables 
 	g_nodangle = 0;
 	//Load all the necessary information
-	char* suffix = "DHD";
+	char* suffix = (char*)"DHD";
 	if (!g_nodangle)
 	loadDangleSuffix(g_dangle3, g_dangle5, suffix);
     loadStackSuffix(g_stack, suffix);
@@ -65,7 +65,7 @@ double CtEnergy::compute(HybridSSMin* hComp, int* bp, int* upst, int* dnst)
 
   //Now, reset some of the parameters
   double RT,t,tRatio;
-  loadRTSuffix(&RT, "DHD");
+  loadRTSuffix(&RT, (char*)"DHD");
   t = RT / R - 273.15;
   tRatio = (t + 273.15) / 310.15;
   //Recombine, as the tRatio has changed!!!!!!!!!!!!!!!!!!!

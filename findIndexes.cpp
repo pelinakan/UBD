@@ -111,7 +111,7 @@ int editDistance(unsigned int **d, std::string s1, std::string s2, std::string q
 	if (d == NULL) {
 		//The matrix given has not been initialized
 		fprintf(stdout,"Null computation matrix!\n");
-		return NULL;
+		return -1;
 	}
 
 	for(int x = 1; x <= xLen; ++x)

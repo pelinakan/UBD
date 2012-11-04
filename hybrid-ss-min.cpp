@@ -74,17 +74,17 @@ HybridSSMin::HybridSSMin(double SelfHybT, double HybTemperature)
 	/* read free energies and entropies */
   
     loadStack(stackEnergies, stackEnthalpies, NA, saltCorrection);
-    symmetryCheckStack(stackEnergies, "energy");
+    symmetryCheckStack(stackEnergies, (char*)"energy");
     /* symmetryCheckStack(stackEnthalpies, "enthalpy"); */
     if (!g_nodangle)
 		loadDangle(dangleEnergies3, dangleEnthalpies3, dangleEnergies5, dangleEnthalpies5, NA, saltCorrection);
     loadLoop(hairpinLoopEnergies, interiorLoopEnergies, bulgeLoopEnergies, hairpinLoopEnthalpies, interiorLoopEnthalpies, bulgeLoopEnthalpies, NA, saltCorrection);
     loadSint2(sint2Energies, sint2Enthalpies, NA, saltCorrection);
-    symmetryCheckSint2(sint2Energies, "energy");
+    symmetryCheckSint2(sint2Energies, (char*)"energy");
     /* symmetryCheckSint2(sint2Enthalpies, "enthalpy"); */
     loadAsint1x2(asint1x2Energies, asint1x2Enthalpies, NA, saltCorrection);
     loadSint4(sint4Energies, sint4Enthalpies, NA, saltCorrection);
-    symmetryCheckSint4(sint4Energies, "energy");
+    symmetryCheckSint4(sint4Energies, (char*)"energy");
     /* symmetryCheckSint4(sint4Enthalpies, "enthalpy"); */
     loadTstackh(tstackhEnergies, tstackhEnthalpies, NA);
     loadTstacki(tstackiEnergies, tstackiEnthalpies, NA);

@@ -16,16 +16,13 @@
 # define PRECISION 1
 #endif
 
-#ifdef INTEGER
-# define isFinite(x) (x < INFINITY / 2)
-#else
-#ifdef _WIN32 || _WIN64
+#if defined(_WIN32) || defined(_WIN64)
 #define finite(x) (_finite(x) && !_isnan(x) && x != 999999)
 #else
 #define finite(x) (finite(x) && !isnan(x))
-#endif
+#endif //WIN32 || WIN64
+
 #define isFinite(x) (finite(x))
-#endif
 
 #ifdef INFINITY
 # undef INFINITY
