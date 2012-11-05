@@ -27,7 +27,12 @@ CONTENT
    
    b. WINDOWS
    Compilation and running is dependent on pThread, available for Windows from http://sources.redhat.com/pthreads-win32/
-   Compile .sln using Visual Studio or use binaries available form ??? 
+   Compile .sln using Visual Studio or use binaries available in the package
+
+   c. MAC
+   XCode is required for compilation. You can find this from https://developer.apple.com/xcode/
+   After installing XCode, just run make:
+	   make 
 
 2. BARCODE DESIGNER
    This tool is used for designing a given number of barcodes adhering to a given set of constraints as defined in the "config" file.
@@ -45,7 +50,7 @@ CONTENT
    	findIndexes [options] <ids.txt> <in.fastq> <out.fastq>
    Options: 
          -m [INT]     allowed mismatches [2]
-	 Maximum number of mismatches allowed in the barcode for allocation. For a way to determine this varialbe please see "TagGD ???"(Costea et. al. 2012)
+	 Maximum number of mismatches allowed in the barcode for allocation. For a way to determine this varialbe please see "TagGD: Fast and Accurate Software for DNA Tag Generation and Demultiplexing" (Costea et. al. 2012)
          -k INT     kMer length [1/3*length]
 	 Length of the kMer, also explained in detail in the paper
          -s INT     start position of ID [0]
