@@ -4,7 +4,11 @@
 #include <string>
 #include <list>
 #include <time.h>
+#ifdef __APPLE__
+#include <tr1/unordered_map>
+#else
 #include <unordered_map>
+#endif
 #include <pthread.h>
 #include "pol_fastq.h"
 
