@@ -18,9 +18,13 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #define finite(x) (_finite(x) && !_isnan(x) && x != 999999)
+#endif //WIN32 || WIN64
+
+#ifdef TARGET_OS_MAC
+#define finite(x) (finite(x) && !std::isnan(x))
 #else
 #define finite(x) (finite(x) && !isnan(x))
-#endif //WIN32 || WIN64
+#endif //TARGET_OS_MAC
 
 #define isFinite(x) (finite(x))
 
