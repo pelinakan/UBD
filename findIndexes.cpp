@@ -6,11 +6,14 @@
 #include <time.h>
 #ifdef __APPLE__
 #include <tr1/unordered_map>
+using namespace tr1;
 #else
 #include <unordered_map>
 #endif
 #include <pthread.h>
 #include "pol_fastq.h"
+
+using namespace std;
 
 static int print_usage()
 {
@@ -41,7 +44,7 @@ public:
 		id = other.id;
 	};
 
-	std::string id;
+	string id;
 
 };
 
@@ -53,7 +56,7 @@ long int ambiguous = 0;
 long int editDistanceTooBig = 0;
 
 //Parameter
-int mismatch = 2;
+int amismatch = 2;
 int kLen = 0;
 int probeStartPos = 0;
 int probeLength = 0;
@@ -74,8 +77,8 @@ pthread_mutex_t countersMutex = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_unlock(&countersMutex);
 
 /////////////////Hash declaration//////////////////////
-std::unordered_map<std::string,int> mainIds_map;
-std::unordered_map<std::string,std::list<IdStruct>> kIds_map;
+unordered_map<std::string,int> mainIds_map;
+unordered_map<std::string,std::list<IdStruct>> kIds_map;
 ///////////////////////////////////////////////////////
 
 bool loadIds(FILE* snpFile)
@@ -89,7 +92,7 @@ bool loadIds(FILE* snpFile)
 		line[strlen(line)-1] = '\0';
 		const char *t = line;
 		int pos = 0;
-		std::string id = "";
+		string id = "";
 		while (*t) {
 			t = pol_util::toksplit(t, '\t', tok, 10000);
 			if (pos == 0) {//ID
@@ -177,7 +180,7 @@ int editDistance(unsigned int **d, std::string s1, std::string s2, std::string q
 
 void createKmerMap(int kLen)
 {
-	std::unordered_map<std::string,int>::const_iterator it;
+	unordered_map<std::string,int>::const_iterator it;
 	for (it = mainIds_map.begin(); it != mainIds_map.end(); ++it) {//For each, introduce only part of it into the new map!
 		for (unsigned int i=0; i<=(it->first.size()-kLen); ++i) {
 			std::string newKey = it->first.substr(i,kLen);
@@ -198,8 +201,8 @@ typedef struct {
  */
 void* idSearch(void* arguments)
 {
-	std::unordered_map<std::string,int>::iterator it;
-	std::unordered_map<std::string,int> kMerHitMap;
+	unordered_map<std::string,int>::iterator it;
+	unordered_map<std::string,int> kMerHitMap;
 
 	//Get longer sequence!!!!
 	int leftShift = (probeStartPos-positionalError >= 0)? positionalError : 0;
@@ -257,9 +260,9 @@ void* idSearch(void* arguments)
 				id = e->getSequence(probeStartPos-leftShift,probeStartPos+probeLength+rightShift);
 				qual = e->getQuality(probeStartPos-leftShift,probeStartPos+probeLength+rightShift);
 
-				std::unordered_map<std::string,std::list<IdStruct>>::iterator splitIt;
+				unordered_map<std::string,std::list<IdStruct>>::iterator splitIt;
 				std::list<IdStruct>::const_iterator it;
-				std::unordered_map<std::string,int>::iterator kIt;
+				unordered_map<std::string,int>::iterator kIt;
 
 				for (int displace=0; displace <= leftShift; ++displace) {
 					int x = displace;
@@ -308,7 +311,7 @@ void* idSearch(void* arguments)
 				for (int i=maxKmerHits-1;i>=0;--i) {
 					if (orderedIds[i].size() != 0 && (goOn <= 4) ) {//This is the list of most hits
 						for (std::list<std::string>::const_iterator it=orderedIds[i].begin(); it != orderedIds[i].end(); ++it) {
-							double ed = editDistance(d,id,(*it),qual,&score,mismatch);
+							double ed = editDistance(d,id,(*it),qual,&score,amismatch);
 							++searching;
 							if (ed < min_ed) {//New min
 								min_ed = ed;
@@ -332,7 +335,7 @@ void* idSearch(void* arguments)
 					orderedIds[i].clear();
 				}
 
-				if (goodHit && min_ed<= mismatch) {
+				if (goodHit && min_ed<= amismatch) {
 					//We have a "best" hit!
 					GUARDED_INC(count)
 					if (args.outFile != NULL) {
@@ -386,7 +389,7 @@ int main(int argc, char *argv[])
 	//Get args
 	while ((arg = getopt(argc, argv, "m:k:s:l:e:p:")) >= 0) {
 		switch (arg) {
-		case 'm': mismatch = atoi(optarg); break;
+		case 'm': amismatch = atoi(optarg); break;
 		case 'k': kLen = atoi(optarg);
 		break;
 		case 's': probeStartPos = atoi(optarg); break;

@@ -114,7 +114,7 @@ public:
 		return name;
 	};
 
-	uint getSize() {
+	unsigned getSize() {
 		return strlen(m_strSeq);
 	};
 
@@ -173,11 +173,11 @@ public:
 	 * @param count      - how many bases != from nucl to consider before stopping [Def: 2]
 	 * @return True is read after cutting N is longer than or equal to min_length
 	 */
-	bool removePoly(char nucl, uint min_length, bool from_end = true, uint count = 2)
+	bool removePoly(char nucl, unsigned min_length, bool from_end = true, unsigned count = 2)
 	{
-		uint l;
+		unsigned l;
 		if (from_end) {//Removing from the end
-			uint c = 0;
+			unsigned c = 0;
 			for (l = strlen(m_strSeq) - 1; l >= min_length; --l) {
 				if (m_strSeq[l] != nucl) {
 					c++;
@@ -200,7 +200,7 @@ public:
 			return true;
 
 		} else {//Removing from the beginning.
-			uint c = 0;
+			unsigned c = 0;
 			for (l = 0; l < strlen(m_strSeq); ++l) {
 				if (m_strSeq[l] != nucl) {
 					c++;
@@ -249,7 +249,7 @@ public:
 	 * @param posFound -> returns the position where the overlap was found and thus the position that the clipping started from
 	 * @return true is sequence was found and clipped
 	 */
-	bool clip(std::string seq, /*uint minOverlap,*/ int& posFound ,int mismatch=0)
+	bool clip(std::string seq, /*unsigned minOverlap,*/ int& posFound ,int mismatch=0)
 	{
 		bool found = contains(seq,posFound,mismatch);
 		if (!found) //Not found, forget it!
@@ -274,7 +274,7 @@ public:
 	 * @param minOverlap -> what is the minimum overlap for considering this a hit
 	 * @return true is sequence was found and clipped
 	 */
-	bool clip(std::string seq, uint minOverlap, int& posFound ,int mismatch=0)
+	bool clip(std::string seq, unsigned minOverlap, int& posFound ,int mismatch=0)
 	{
 		int startingPosition = 0;
 		bool found = false;
