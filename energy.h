@@ -18,9 +18,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #define finite(x) (_finite(x) && !_isnan(x) && x != 999999)
-#endif //WIN32 || WIN64
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 #define finite(x) (finite(x) && !(x!=x))
 #else
 #define finite(x) (finite(x) && !isnan(x))
