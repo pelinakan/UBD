@@ -3,6 +3,7 @@ CONTENT
 1. INSTALL
    a. LINUX SYSTEMS
    b. WINDOWS
+   c. MAC
 2. BARCODE DESIGNER
 3. DEMULTIPLEXER
 
@@ -40,24 +41,24 @@ CONTENT
    	designBarcodes [options] <output_file_name>
    Options:
 	-c [STR]	Configuration file
-	Name of file containing the constraints. For an example of how to format this file and the available options, have a look at the "config_example.txt"
-	-n [INT]     	Number of barcodes to output
+				Name of file containing the constraints. For an example of how to format this file and the available options, have a look at the "config_example.txt"
+	-n [INT]    Number of barcodes to output
 
 3. DEMULTIPLEXER
    This tools is used for recalling the barcodes for a fastq formatted input. 
-   Note that the output will not be in the same order as the input, as multiple threads are used to process the input file in parallel. If your data is paried-end, prived the pair file under the -p option to get two output files where the pairing is still kept.
+   Note that the output will not be in the same order as the input, as multiple threads are used to process the input file in parallel. If your data is paired-end, provide the pair file under the -p option to get two output files where the pairing is still kept.
    Usage:   
    	findIndexes [options] <ids.txt> <in.fastq> <out.fastq>
    Options: 
          -m [INT]     allowed mismatches [2]
-	 Maximum number of mismatches allowed in the barcode for allocation. For a way to determine this varialbe please see "TagGD: Fast and Accurate Software for DNA Tag Generation and Demultiplexing" (Costea et. al. 2012)
+	 				  Maximum number of mismatches allowed in the barcode for allocation. For a way to determine this variable please see "TagGD: Fast and Accurate Software for DNA Tag Generation and Demultiplexing" (Costea et. al. 2012)
          -k INT     kMer length [1/3*length]
-	 Length of the kMer, also explained in detail in the paper
+	 				Length of the kMer, also explained in detail in the paper
          -s INT     start position of ID [0]
-	 Start position of the barcode
+	 				Start position of the barcode
          -l INT     length of ID [0]
-	 Lenght of the barcode
+	 				Lenght of the barcode
          -e INT     id positional error [0]
-	 Expected positional error of the barcode. For example, if the barcode should start at base 20 but there is a reason to believe that an indel might occur up to that position, this parameter should be set to 1.
+	 				Expected positional error of the barcode. For example, if the barcode should start at base 20 but there is a reason to believe that an indel might occur up to that position, this parameter should be set to 1.
          -p STRING  name of pair file [NULL]
-   	 Name of the pair file, in case of a paired end library. This file will not be checked of barcodes, but it will be outputed in a paired fashion to the input file, so that respecive rows are still paires. 
+   	 				Name of the pair file, in case of a paired end library. This file will not be checked of barcodes, but it will be outputted in a paired fashion to the input file, so that respective rows are still paired. 
