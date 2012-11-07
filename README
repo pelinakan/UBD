@@ -23,6 +23,8 @@ CONTENT
 
    a. LINUX SYSTEMS
    If downloaded archived version, first unpack.
+   You can use the binaries provided in /bin/linux.
+   You can also build the application yourself:
    Run make:
        make
    
@@ -34,6 +36,8 @@ CONTENT
    XCode is required for compilation. You can find this from https://developer.apple.com/xcode/
    After installing XCode, just run make:
 	   make 
+   You can also use the binaries provided in /bin/mac. They may not work due to library dependencies. In that case you will have to build 
+   the application manually.
 
 2. BARCODE DESIGNER
    This tool is used for designing a given number of barcodes adhering to a given set of constraints as defined in the "config" file.
