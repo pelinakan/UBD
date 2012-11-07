@@ -6,7 +6,7 @@
 #include <time.h>
 #ifdef __APPLE__
 #include <tr1/unordered_map>
-using namespace tr1;
+using namespace std::tr1;
 #else
 #include <unordered_map>
 #endif
@@ -48,7 +48,7 @@ public:
 
 };
 
-long int count = 0;
+long int iCount = 0;
 long int perfectMatch = 0;
 long int totalReads = 0;
 
@@ -78,7 +78,7 @@ pthread_mutex_t countersMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /////////////////Hash declaration//////////////////////
 unordered_map<std::string,int> mainIds_map;
-unordered_map<std::string,std::list<IdStruct>> kIds_map;
+unordered_map<std::string,std::list<IdStruct> > kIds_map;
 ///////////////////////////////////////////////////////
 
 bool loadIds(FILE* snpFile)
@@ -243,7 +243,7 @@ void* idSearch(void* arguments)
 			//Search ID in map!
 			it = mainIds_map.find(id);
 			if (it != mainIds_map.end()) {//Found!
-				GUARDED_INC(count)
+				GUARDED_INC(iCount)
 				GUARDED_INC(perfectMatch)
 				//Print this to output map!
 				if (args.outFile != NULL) {
@@ -260,7 +260,7 @@ void* idSearch(void* arguments)
 				id = e->getSequence(probeStartPos-leftShift,probeStartPos+probeLength+rightShift);
 				qual = e->getQuality(probeStartPos-leftShift,probeStartPos+probeLength+rightShift);
 
-				unordered_map<std::string,std::list<IdStruct>>::iterator splitIt;
+				unordered_map<std::string,std::list<IdStruct> >::iterator splitIt;
 				std::list<IdStruct>::const_iterator it;
 				unordered_map<std::string,int>::iterator kIt;
 
@@ -337,7 +337,7 @@ void* idSearch(void* arguments)
 
 				if (goodHit && min_ed<= amismatch) {
 					//We have a "best" hit!
-					GUARDED_INC(count)
+					GUARDED_INC(iCount)
 					if (args.outFile != NULL) {
 						e->setOptional("barcode="+found_id);
 						pthread_mutex_lock(&writeMutex);
@@ -468,7 +468,7 @@ int main(int argc, char *argv[])
 		pthread_join(threadList[i],NULL);
 	}
 
-	fprintf(stdout,"Found: %ld\n",count);
+	fprintf(stdout,"Found: %ld\n",iCount);
 	fprintf(stdout, "Perfect match: %ld\n",perfectMatch);
 	fprintf(stdout, "Ambiguous ID's: %ld\n",ambiguous);
 	fprintf(stdout, "Edit distance exceeding limit: %ld\n",editDistanceTooBig);
