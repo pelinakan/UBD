@@ -7,6 +7,7 @@ CONTENT
 2. BARCODE DESIGNER
 3. DEMULTIPLEXER
 
+4. ACKNOWLEDGEMENTS
 -----------------------------------------------------------
 -----------------------------------------------------------
 
@@ -66,3 +67,7 @@ CONTENT
 	 				Expected positional error of the barcode. For example, if the barcode should start at base 20 but there is a reason to believe that an indel might occur up to that position, this parameter should be set to 1.
          -p STRING  name of pair file [NULL]
    	 				Name of the pair file, in case of a paired end library. This file will not be checked of barcodes, but it will be outputted in a paired fashion to the input file, so that respective rows are still paired. 
+
+4. ACKNOWLEDGEMENTS
+   This work was supported by BILS.
+
