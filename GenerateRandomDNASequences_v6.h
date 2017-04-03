@@ -8,6 +8,9 @@
 #include <cstring>
 #include <string>
 #include <time.h>
+#ifdef __linux__
+#include <unistd.h>
+#endif
 #include <vector>
 #include <omp.h>
 #include <sstream>
@@ -209,7 +212,7 @@ for(i=0;i<SeqLen;i++)	s1.append("A");
 
 LenDiffThreshold = lzw(s1); //LWZ score of the least complex sequence
 
-LenDiffThreshold = SeqLen/2;
+//LenDiffThreshold = SeqLen/2;
 
 }
 
@@ -268,7 +271,10 @@ void* generateRandomChecked(void* args)
 	int gcmin = p->gcmin;
 	int gcmax = p->gcmax;
 	int GCcontent = 0;
-	HybridSSMin* hybMin=new HybridSSMin(SelfHybT,Hyb_Temperature);
+	HybridSSMin* hybMin = NULL;
+	if (Hyb_Temperature > 0 && SelfHybT > 0) {
+		hybMin=new HybridSSMin(SelfHybT,Hyb_Temperature);
+	}
 	GenerateSequences* mother = p->father;
 	vector<string> buffer;
 	while (true){
@@ -278,22 +284,28 @@ void* generateRandomChecked(void* args)
 
 	  probe= GenerateSequences::AppendAdaptors(seq);
 	  //Check self-hybridization
-	  hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str());
-	  dS=(dH-dG)/(273.15+ SelfHybT);
-	  Tm=(dH/dS)-273.15;
+	  if (hybMin != NULL) {
+		  hybMin->computeGibsonFreeEnergy(dG,dH,probe.c_str());
+		  dS=(dH-dG)/(273.15+ SelfHybT);
+		  Tm=(dH/dS)-273.15;
+		  } else {
+			Tm = SelfHybT+(0.1*SelfHybT); //whatever, some silly value
+		  }
 	  if(Tm<=(SelfHybT+(0.1*SelfHybT))) {
 	    //CHECK ILLUMINA HANDLE VS BARCODE HYB
 	    bool failedHandleHyb = false;
-	    for (int i=0; i < (int)AdaptorList.size(); ++i) {
-	      hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str());
-	      dS=(dH-dG)/(273.15+ Hyb_Temperature);
-	      Tm=dH/(dS+R*log(0.00001/4));
-	      Tm-=273.15;
-	      if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
-		failedHandleHyb = true;
-		break;
-	      }
-	    }
+	    if (hybMin) {//Otherwise, no need to do this.
+			for (int i=0; i < (int)AdaptorList.size(); ++i) {
+			  hybMin->computeTwoProbeHybridization(dG,dH,seq.c_str(),AdaptorList[i].c_str());
+			  dS=(dH-dG)/(273.15+ Hyb_Temperature);
+			  Tm=dH/(dS+R*log(0.00001/4));
+			  Tm-=273.15;
+			  if(Tm>(Hyb_Temperature+(0.1*Hyb_Temperature))) {//Forget this one!
+				failedHandleHyb = true;
+				break;
+			  }
+			}
+		}
 	    if (!failedHandleHyb) {
 	      //Check for repeats
 	      passedrepeatcheck=mother->checkforruns(seq); // Check for repeats
@@ -323,7 +335,9 @@ void* generateRandomChecked(void* args)
 	    }
 	  }
 	}
-	delete hybMin;
+	if (hybMin) {
+		delete hybMin;
+	}
 	delete mother;
 	return NULL;
 }

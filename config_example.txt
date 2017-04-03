@@ -17,10 +17,10 @@ minGC = 0.45
 #Maximum GC content of barcode. Required
 maxGC = 0.65
 
-#Temperature of self hybridization. Required
+#Temperature of self hybridization. Required. Setting this to -1, will result in no temperature checking.
 selfHybridizationTemperature = 50.0
 
-#Temperature at which the hybridization is performed. Required
+#Temperature at which the hybridization is performed. Required. Setting this to -1 will result in no temperature checking.
 hybridizationTemperature = 50.0
 
 #Minimum edit distance between barcodes. Ensure that no two barcodes are closer than this in distance space.

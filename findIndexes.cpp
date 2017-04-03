@@ -12,6 +12,9 @@ using namespace std::tr1;
 #endif
 #include <pthread.h>
 #include "pol_fastq.h"
+#ifdef __linux__
+#include <unistd.h>
+#endif
 
 using namespace std;
 
